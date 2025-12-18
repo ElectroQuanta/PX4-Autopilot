@@ -1,7 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (C) 2017 PX4 Development Team. All rights reserved.
- *   Author: @author David Sidrane <david_s5@nscdg.com>
+ *   Copyright (c) 2016, 2018 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,41 +32,84 @@
  ****************************************************************************/
 
 /**
- * @file gpio.c
- * Implementation of Generic PIO init Note we use he HAL version of configgpio
- * So this will work with any ARCH
+ * @file led.c
+ *
+ * NXP fmuk66-e LED backend.
  */
 
 #include <px4_platform_common/px4_config.h>
 
-#if defined(CONFIG_ARCH_BOARD_NXP_MX8MN)
-/* Minimal stub for bring-up on mx8mn:
- * px4_gpio_init() will call this, but we don't touch real hardware yet.
+#include <stdbool.h>
+
+#include "kinetis.h"
+#include "chip.h"
+#include "board_config.h"
+
+#include <arch/board/board.h>
+
+/*
+ * Ideally we'd be able to get these from arm_internal.h,
+ * but since we want to be able to disable the NuttX use
+ * of leds for system indication at will and there is no
+ * separate switch, we need to build independent of the
+ * CONFIG_ARCH_LEDS configuration switch.
  */
-void px4_arch_configgpio(uint32_t cfgset)
+__BEGIN_DECLS
+extern void led_init(void);
+extern void led_on(int led);
+extern void led_off(int led);
+extern void led_toggle(int led);
+__END_DECLS
+
+
+static uint32_t g_ledmap[] = {
+	0,      // Indexed by LED_BLUE
+	GPIO_LED_1,       // Indexed by LED_RED, LED_AMBER
+	GPIO_LED_SAFETY,  // Indexed by LED_SAFETY
+	GPIO_LED_2,     // Indexed by LED_GREEN
+};
+
+__EXPORT void led_init(void)
 {
-	(void)cfgset;
-}
-#endif
-
-/************************************************************************************
- * Name: px4_gpio_init
- *
- * Description:
- *   A board may provide a list of GPI pins to get initialized
- *
- *  list    - A list of GPIO pins to be initialized
- *  count   - Size of the list
- *
- * return  - Nothing
-  ************************************************************************************/
-
-
-void px4_gpio_init(const uint32_t list[], int count)
-{
-	for (int gpio = 0; gpio < count; gpio++) {
-		if (list[gpio] != 0) {
-			px4_arch_configgpio(list[gpio]);
+	/* Configure LED GPIOs for output */
+	for (size_t l = 0; l < (sizeof(g_ledmap) / sizeof(g_ledmap[0])); l++) {
+		if (g_ledmap[l] != 0) {
+			kinetis_pinconfig(g_ledmap[l]);
 		}
 	}
+}
+
+static void phy_set_led(int led, bool state)
+{
+	/* Drive High to switch on */
+
+	if (g_ledmap[led] != 0) {
+		kinetis_gpiowrite(g_ledmap[led], state);
+	}
+}
+
+static bool phy_get_led(int led)
+{
+
+	if (g_ledmap[led] != 0) {
+		return kinetis_gpioread(g_ledmap[led]);
+	}
+
+	return false;
+}
+
+__EXPORT void led_on(int led)
+{
+	phy_set_led(led, true);
+}
+
+__EXPORT void led_off(int led)
+{
+	phy_set_led(led, false);
+}
+
+__EXPORT void led_toggle(int led)
+{
+
+	phy_set_led(led, !phy_get_led(led));
 }

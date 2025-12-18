@@ -1,0 +1,13 @@
+{
+    "board_id": 30,
+    "magic": "PX4FWv1",
+    "description": "Firmware for the NXP i.MX8MN DDR3L EVK (M7)",
+    "image": "",
+    "build_time": 0,
+    "summary": "NXP i.MX8MN DDR3L EVK",
+    "version": "0.1",
+    "image_size": 0,
+    "image_maxsize": 2096112,
+    "git_identity": "",
+    "board_revision": 0
+}

@@ -1,7 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (C) 2017 PX4 Development Team. All rights reserved.
- *   Author: @author David Sidrane <david_s5@nscdg.com>
+ *   Copyright (C) 2016, 2018 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,42 +31,24 @@
  *
  ****************************************************************************/
 
-/**
- * @file gpio.c
- * Implementation of Generic PIO init Note we use he HAL version of configgpio
- * So this will work with any ARCH
+/*
+ * @file timer_config.cpp
+ *
+ * Configuration data for the kinetis pwm_servo, input capture and pwm input driver.
+ *
+ * Note that these arrays must always be fully-sized.
  */
 
-#include <px4_platform_common/px4_config.h>
+#include <stdint.h>
+#include "board_config.h"
 
-#if defined(CONFIG_ARCH_BOARD_NXP_MX8MN)
-/* Minimal stub for bring-up on mx8mn:
- * px4_gpio_init() will call this, but we don't touch real hardware yet.
- */
-void px4_arch_configgpio(uint32_t cfgset)
+// For mx8mn minimal bring-up we do not configure any PWM/io_timers yet.
+// PWM driver is disabled in default.px4board, so this stub is sufficient.
+
+extern "C" void fmuk66_timer_initialize(void)
 {
-	(void)cfgset;
-}
-#endif
-
-/************************************************************************************
- * Name: px4_gpio_init
- *
- * Description:
- *   A board may provide a list of GPI pins to get initialized
- *
- *  list    - A list of GPIO pins to be initialized
- *  count   - Size of the list
- *
- * return  - Nothing
-  ************************************************************************************/
-
-
-void px4_gpio_init(const uint32_t list[], int count)
-{
-	for (int gpio = 0; gpio < count; gpio++) {
-		if (list[gpio] != 0) {
-			px4_arch_configgpio(list[gpio]);
-		}
-	}
+    // On fmuk66 this would configure FTM timers.
+    // On mx8mn we do nothing for now. Later you'll create a proper
+    // mx8mn_timer_initialize() that sets up a GPT/FlexTimer, map it
+    // into PX4's io_timer layer, and rename all call sites.
 }

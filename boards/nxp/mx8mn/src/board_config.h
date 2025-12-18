@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2020 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2013-2018 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,68 +30,56 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************/
-#pragma once
-#include <stdint.h>
 
-#if defined(CONFIG_ARCH_BOARD_NXP_MX8MN)
-#include <px4_platform_common/px4_config.h>
-
-#include <nuttx/i2c/i2c_master.h>
-/* Forward declaration for NuttX I2C driver type
- * (normally defined in <nuttx/i2c/i2c_master.h>).
+/**
+ * @file board_config.h
+ *
+ * NXP fmuk66-e internal definitions
  */
-struct i2c_master_s;
-#endif
+
+#pragma once
+
+#include <px4_platform_common/px4_config.h>
+#include <px4_platform_common/board_common.h>
+#include <nuttx/compiler.h>
+#include <stdint.h>
 
 __BEGIN_DECLS
 
-#define MAX_MTD_INSTANCES 5u
-
-// The data needed to interface with mtd device's
-
-typedef struct {
-	struct mtd_dev_s *mtd_dev;
-	int              *partition_block_counts;
-	int              *partition_types;
-	const char       **partition_names;
-	struct mtd_dev_s **part_dev;
-	uint32_t         devid;
-	unsigned         n_partitions_current;
-} mtd_instance_s;
-
-/*
-  mtd operations
+/* Only pull the generic board header.
+ * DO NOT include kinetis.h or kinetis_pinmux.h here.
  */
+#include <arch/board/board.h>
 
-/*
- * Get device an pinter to the array of mtd_instance_s of the system
- *  count - receives the number of instances pointed to by the pointer
- *  retunred.
- *
- *  returns: - A pointer to the mtd_instance_s of the system
- *            This can be  Null if there are no mtd instances.
- *
- */
-__EXPORT mtd_instance_s **px4_mtd_get_instances(unsigned int *count);
-
-/*
-  Get device complete geometry or a device
- */
-
-
-__EXPORT int  px4_mtd_get_geometry(const mtd_instance_s *instance, unsigned long *blocksize, unsigned long *erasesize,
-				   unsigned long *neraseblocks, unsigned *blkpererase, unsigned *nblocks,
-				   unsigned *partsize);
-/*
-  Get size of a parttion on an instance.
- */
-__EXPORT ssize_t px4_mtd_get_partition_size(const mtd_instance_s *instance, const char *partname);
-
-int px4_at24c_initialize(FAR struct i2c_master_s *dev,
-			 uint8_t address, FAR struct mtd_dev_s **mtd_dev);
-
-void px4_at24c_deinitialize(void);
-
-int flexspi_attach(mtd_instance_s *instance);
+/* cache-aligned allocation used by uORB and others */
+__EXPORT void *px4_cache_aligned_alloc(size_t size);
+__EXPORT void  px4_cache_aligned_free(void *ptr);
 
 __END_DECLS
+
+/* For minimal bring-up we do not configure any GPIOs yet.
+ * px4_gpio_init() will simply not be called.
+ */
+
+#define PX4_GPIO_INIT_LIST                                                     \
+  {}
+
+/* PX4 uses 2x 32-bit words from the CPU UUID as a 64-bit unique ID (MAVLink UID).
+ * For bring-up we just point it at words 0 and 1.
+ */
+#ifndef PX4_CPU_UUID_WORD32_UNIQUE_H
+#  define PX4_CPU_UUID_WORD32_UNIQUE_H 0
+#endif
+
+#ifndef PX4_CPU_UUID_WORD32_UNIQUE_M
+#  define PX4_CPU_UUID_WORD32_UNIQUE_M 1
+#endif
+
+#if (PX4_CPU_UUID_WORD32_UNIQUE_H >= PX4_CPU_UUID_WORD32_LENGTH) || \
+    (PX4_CPU_UUID_WORD32_UNIQUE_M >= PX4_CPU_UUID_WORD32_LENGTH)
+#  error "PX4_CPU_UUID_WORD32_UNIQUE_* out of range"
+#endif
+
+
+
+/* No timers, ADCs, CAN, SD, etc. defined at this stage. */

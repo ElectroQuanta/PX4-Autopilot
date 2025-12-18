@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2020 PX4 Development Team. All rights reserved.
+ *   Copyright (C) 2020 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,68 +30,60 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************/
-#pragma once
-#include <stdint.h>
 
-#if defined(CONFIG_ARCH_BOARD_NXP_MX8MN)
 #include <px4_platform_common/px4_config.h>
+#include <systemlib/px4_macros.h>
 
-#include <nuttx/i2c/i2c_master.h>
-/* Forward declaration for NuttX I2C driver type
- * (normally defined in <nuttx/i2c/i2c_master.h>).
- */
-struct i2c_master_s;
-#endif
+#include <arch/board/board.h>
 
-__BEGIN_DECLS
+#include <errno.h>
 
-#define MAX_MTD_INSTANCES 5u
+#include "kinetis.h"
+#include "hardware/kinetis_port.h"
 
-// The data needed to interface with mtd device's
-
-typedef struct {
-	struct mtd_dev_s *mtd_dev;
-	int              *partition_block_counts;
-	int              *partition_types;
-	const char       **partition_names;
-	struct mtd_dev_s **part_dev;
-	uint32_t         devid;
-	unsigned         n_partitions_current;
-} mtd_instance_s;
-
-/*
-  mtd operations
- */
-
-/*
- * Get device an pinter to the array of mtd_instance_s of the system
- *  count - receives the number of instances pointed to by the pointer
- *  retunred.
+/****************************************************************************
+ * Name: kinetis_gpiosetevent
  *
- *  returns: - A pointer to the mtd_instance_s of the system
- *            This can be  Null if there are no mtd instances.
+ * Description:
+ *   Sets/clears GPIO based event and interrupt triggers.
  *
- */
-__EXPORT mtd_instance_s **px4_mtd_get_instances(unsigned int *count);
+ * Input Parameters:
+ *  - pinset: gpio pin configuration
+ *  - rising/falling edge: enables
+ *  - event:  generate event when set
+ *  - func:   when non-NULL, generate interrupt
+ *  - arg:    Argument passed to the interrupt callback
+ *
+ * Returned Value:
+ *   Zero (OK) on success; a negated errno value on failure indicating the
+ *   nature of the failure.
+ *
+ ****************************************************************************/
+#if defined(CONFIG_KINETIS_GPIOIRQ)
+int kinetis_gpiosetevent(uint32_t pinset, bool risingedge, bool fallingedge,
+			 bool event, xcpt_t func, void *arg)
+{
+	int ret = -ENOSYS;
 
-/*
-  Get device complete geometry or a device
- */
+	if (func == NULL) {
+		kinetis_pinirqdisable(pinset);
+		ret = kinetis_pinirqattach(pinset, NULL, NULL);
 
+	} else {
+		ret = kinetis_pinirqattach(pinset, func, arg);
+		pinset &= ~_PIN_INT_MASK;
 
-__EXPORT int  px4_mtd_get_geometry(const mtd_instance_s *instance, unsigned long *blocksize, unsigned long *erasesize,
-				   unsigned long *neraseblocks, unsigned *blkpererase, unsigned *nblocks,
-				   unsigned *partsize);
-/*
-  Get size of a parttion on an instance.
- */
-__EXPORT ssize_t px4_mtd_get_partition_size(const mtd_instance_s *instance, const char *partname);
+		if (risingedge) {
+			pinset |= PIN_INT_RISING;
+		}
 
-int px4_at24c_initialize(FAR struct i2c_master_s *dev,
-			 uint8_t address, FAR struct mtd_dev_s **mtd_dev);
+		if (fallingedge) {
+			pinset |= PIN_INT_FALLING;
+		}
 
-void px4_at24c_deinitialize(void);
+		kinetis_pinirqenable(pinset);
+	}
 
-int flexspi_attach(mtd_instance_s *instance);
-
-__END_DECLS
+	return ret;
+}
+#endif /* CONFIG_KINETIS_GPIOIRQ */

@@ -1,7 +1,6 @@
 /****************************************************************************
  *
  *   Copyright (C) 2017 PX4 Development Team. All rights reserved.
- *   Author: @author David Sidrane <david_s5@nscdg.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,42 +31,85 @@
  *
  ****************************************************************************/
 
-/**
- * @file gpio.c
- * Implementation of Generic PIO init Note we use he HAL version of configgpio
- * So this will work with any ARCH
+/*
+ * @file pwm_trigger.c
+ *
  */
 
 #include <px4_platform_common/px4_config.h>
+#include <nuttx/arch.h>
+#include <nuttx/irq.h>
 
-#if defined(CONFIG_ARCH_BOARD_NXP_MX8MN)
-/* Minimal stub for bring-up on mx8mn:
- * px4_gpio_init() will call this, but we don't touch real hardware yet.
- */
-void px4_arch_configgpio(uint32_t cfgset)
+#include <sys/types.h>
+#include <stdbool.h>
+
+#include <assert.h>
+#include <debug.h>
+#include <time.h>
+#include <queue.h>
+#include <errno.h>
+#include <string.h>
+#include <stdio.h>
+
+#include <arch/board/board.h>
+#include <drivers/drv_pwm_trigger.h>
+
+#include <px4_arch/io_timer.h>
+
+int up_pwm_trigger_set(unsigned channel, uint16_t value)
 {
-	(void)cfgset;
+	return io_timer_set_ccr(channel, value);
 }
-#endif
 
-/************************************************************************************
- * Name: px4_gpio_init
- *
- * Description:
- *   A board may provide a list of GPI pins to get initialized
- *
- *  list    - A list of GPIO pins to be initialized
- *  count   - Size of the list
- *
- * return  - Nothing
-  ************************************************************************************/
-
-
-void px4_gpio_init(const uint32_t list[], int count)
+int up_pwm_trigger_init(uint32_t channel_mask)
 {
-	for (int gpio = 0; gpio < count; gpio++) {
-		if (list[gpio] != 0) {
-			px4_arch_configgpio(list[gpio]);
+	/* Init channels */
+	int ret_val = OK;
+	int channels_init_mask = 0;
+
+	for (unsigned channel = 0; channel_mask != 0 && channel < MAX_TIMER_IO_CHANNELS; channel++) {
+		if (channel_mask & (1 << channel)) {
+
+			ret_val = io_timer_channel_init(channel, IOTimerChanMode_Trigger, NULL, NULL);
+			channel_mask &= ~(1 << channel);
+
+			if (OK == ret_val) {
+				channels_init_mask |= 1 << channel;
+
+			} else if (ret_val == -EBUSY) {
+				/* either timer or channel already used - this is not fatal */
+				ret_val = 0;
+			}
 		}
 	}
+
+	/* Enable the timers */
+	if (ret_val == OK) {
+		up_pwm_trigger_arm(true);
+	}
+
+	return ret_val == OK ? channels_init_mask : ret_val;
+}
+
+void up_pwm_trigger_deinit()
+{
+	/* Disable the timers */
+	up_pwm_trigger_arm(false);
+
+	/* Deinit channels */
+	uint32_t current = io_timer_get_mode_channels(IOTimerChanMode_Trigger);
+
+	for (unsigned channel = 0; current != 0 &&  channel < MAX_TIMER_IO_CHANNELS; channel++) {
+		if (current & (1 << channel)) {
+
+			io_timer_channel_init(channel, IOTimerChanMode_NotUsed, NULL, NULL);
+			current &= ~(1 << channel);
+		}
+	}
+}
+
+void
+up_pwm_trigger_arm(bool armed)
+{
+	io_timer_set_enable(armed, IOTimerChanMode_Trigger, IO_TIMER_ALL_MODES_CHANNELS);
 }

@@ -1,7 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (C) 2017 PX4 Development Team. All rights reserved.
- *   Author: @author David Sidrane <david_s5@nscdg.com>
+ *   Copyright (C) 2020 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,42 +31,9 @@
  *
  ****************************************************************************/
 
-/**
- * @file gpio.c
- * Implementation of Generic PIO init Note we use he HAL version of configgpio
- * So this will work with any ARCH
- */
+#include <px4_arch/i2c_hw_description.h>
 
-#include <px4_platform_common/px4_config.h>
-
-#if defined(CONFIG_ARCH_BOARD_NXP_MX8MN)
-/* Minimal stub for bring-up on mx8mn:
- * px4_gpio_init() will call this, but we don't touch real hardware yet.
- */
-void px4_arch_configgpio(uint32_t cfgset)
-{
-	(void)cfgset;
-}
-#endif
-
-/************************************************************************************
- * Name: px4_gpio_init
- *
- * Description:
- *   A board may provide a list of GPI pins to get initialized
- *
- *  list    - A list of GPIO pins to be initialized
- *  count   - Size of the list
- *
- * return  - Nothing
-  ************************************************************************************/
-
-
-void px4_gpio_init(const uint32_t list[], int count)
-{
-	for (int gpio = 0; gpio < count; gpio++) {
-		if (list[gpio] != 0) {
-			px4_arch_configgpio(list[gpio]);
-		}
-	}
-}
+constexpr px4_i2c_bus_t px4_i2c_buses[I2C_BUS_MAX_BUS_ITEMS] = {
+	initI2CBusInternal(PX4_BUS_NUMBER_TO_PX4(1)),
+	initI2CBusExternal(PX4_BUS_NUMBER_TO_PX4(0)),
+};

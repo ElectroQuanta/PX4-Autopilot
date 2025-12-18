@@ -33,41 +33,32 @@
  ****************************************************************************/
 
 /**
- * @file gpio.c
- * Implementation of Generic PIO init Note we use he HAL version of configgpio
- * So this will work with any ARCH
+ * @file board_mcu_version.c
+ * Implementation of Kinetis based SoC version API
  */
 
 #include <px4_platform_common/px4_config.h>
+#include <stdint.h>
 
-#if defined(CONFIG_ARCH_BOARD_NXP_MX8MN)
-/* Minimal stub for bring-up on mx8mn:
- * px4_gpio_init() will call this, but we don't touch real hardware yet.
+/* Minimal stub: identify family string, revision unknown.
+ * PX4 callers typically tolerate "unknown" early on.
  */
-void px4_arch_configgpio(uint32_t cfgset)
+
+int board_mcu_version(char *rev, const char **revstr, const char **errata)
 {
-	(void)cfgset;
-}
-#endif
+	static const char chip[] = "NXP i.MX8MN";
 
-/************************************************************************************
- * Name: px4_gpio_init
- *
- * Description:
- *   A board may provide a list of GPI pins to get initialized
- *
- *  list    - A list of GPIO pins to be initialized
- *  count   - Size of the list
- *
- * return  - Nothing
-  ************************************************************************************/
-
-
-void px4_gpio_init(const uint32_t list[], int count)
-{
-	for (int gpio = 0; gpio < count; gpio++) {
-		if (list[gpio] != 0) {
-			px4_arch_configgpio(list[gpio]);
-		}
+	if (revstr) {
+		*revstr = chip;
 	}
+
+	if (rev) {
+		*rev = '?';
+	}
+
+	if (errata) {
+		*errata = 0;
+	}
+
+	return 0;
 }

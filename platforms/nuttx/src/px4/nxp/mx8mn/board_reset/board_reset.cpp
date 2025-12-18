@@ -33,41 +33,56 @@
  ****************************************************************************/
 
 /**
- * @file gpio.c
- * Implementation of Generic PIO init Note we use he HAL version of configgpio
- * So this will work with any ARCH
+ * @file board_reset.cpp
+ * Implementation of kinetis based Board RESET API
  */
 
 #include <px4_platform_common/px4_config.h>
+#include <px4_platform_common/shutdown.h>
+#include <errno.h>
+#include <nuttx/board.h>
 
-#if defined(CONFIG_ARCH_BOARD_NXP_MX8MN)
-/* Minimal stub for bring-up on mx8mn:
- * px4_gpio_init() will call this, but we don't touch real hardware yet.
- */
-void px4_arch_configgpio(uint32_t cfgset)
+#ifdef CONFIG_BOARDCTL_RESET
+
+static int board_reset_enter_bootloader()
 {
-	(void)cfgset;
+	uint32_t regvalue = 0xb007b007;
+	*((uint32_t *) KINETIS_VBATR_BASE) = regvalue;
+	return OK;
 }
-#endif
 
-/************************************************************************************
- * Name: px4_gpio_init
+/****************************************************************************
+ * Name: board_reset
  *
  * Description:
- *   A board may provide a list of GPI pins to get initialized
+ *   Reset board.  Support for this function is required by board-level
+ *   logic if CONFIG_BOARDCTL_RESET is selected.
  *
- *  list    - A list of GPIO pins to be initialized
- *  count   - Size of the list
+ * Input Parameters:
+ *   status - Status information provided with the reset event.  This
+ *            meaning of this status information is board-specific.  If not
+ *            used by a board, the value zero may be provided in calls to
+ *            board_reset().
  *
- * return  - Nothing
-  ************************************************************************************/
+ * Returned Value:
+ *   If this function returns, then it was not possible to power-off the
+ *   board due to some constraints.  The return value int this case is a
+ *   board-specific reason for the failure to shutdown.
+ *
+ ****************************************************************************/
 
-
-void px4_gpio_init(const uint32_t list[], int count)
+int board_reset(int status)
 {
-	for (int gpio = 0; gpio < count; gpio++) {
-		if (list[gpio] != 0) {
-			px4_arch_configgpio(list[gpio]);
-		}
+	if (status == REBOOT_TO_BOOTLOADER) {
+		board_reset_enter_bootloader();
 	}
+
+#if defined(BOARD_HAS_ON_RESET)
+	board_on_reset(status);
+#endif
+
+	up_systemreset();
+	return 0;
 }
+
+#endif /* CONFIG_BOARDCTL_RESET */

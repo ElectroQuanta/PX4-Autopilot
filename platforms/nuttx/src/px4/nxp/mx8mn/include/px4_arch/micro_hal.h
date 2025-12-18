@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2020 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2019 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,67 +31,48 @@
  *
  ****************************************************************************/
 #pragma once
+
+#include <nuttx/compiler.h>
+#include <nuttx/irq.h>
 #include <stdint.h>
-
-#if defined(CONFIG_ARCH_BOARD_NXP_MX8MN)
-#include <px4_platform_common/px4_config.h>
-
-#include <nuttx/i2c/i2c_master.h>
-/* Forward declaration for NuttX I2C driver type
- * (normally defined in <nuttx/i2c/i2c_master.h>).
- */
-struct i2c_master_s;
-#endif
 
 __BEGIN_DECLS
 
-#define MAX_MTD_INSTANCES 5u
 
-// The data needed to interface with mtd device's
-
-typedef struct {
-	struct mtd_dev_s *mtd_dev;
-	int              *partition_block_counts;
-	int              *partition_types;
-	const char       **partition_names;
-	struct mtd_dev_s **part_dev;
-	uint32_t         devid;
-	unsigned         n_partitions_current;
-} mtd_instance_s;
-
-/*
-  mtd operations
+/* For minimal bring-up:
+ * - we tell PX4 there is 1 dummy I2C bus entry
+ * - 0 SPI buses
+ * You can refine these later once you actually hook up I2C/SPI.
  */
 
-/*
- * Get device an pinter to the array of mtd_instance_s of the system
- *  count - receives the number of instances pointed to by the pointer
- *  retunred.
- *
- *  returns: - A pointer to the mtd_instance_s of the system
- *            This can be  Null if there are no mtd instances.
- *
- */
-__EXPORT mtd_instance_s **px4_mtd_get_instances(unsigned int *count);
-
-/*
-  Get device complete geometry or a device
- */
+#define PX4_NUMBER_I2C_BUSES   1
+#define PX4_NUMBER_SPI_BUSES 1
 
 
-__EXPORT int  px4_mtd_get_geometry(const mtd_instance_s *instance, unsigned long *blocksize, unsigned long *erasesize,
-				   unsigned long *neraseblocks, unsigned *blkpererase, unsigned *nblocks,
-				   unsigned *partsize);
-/*
-  Get size of a parttion on an instance.
- */
-__EXPORT ssize_t px4_mtd_get_partition_size(const mtd_instance_s *instance, const char *partname);
+/* PX4 expects these lengths to exist at compile time */
+#define PX4_CPU_UUID_BYTE_LENGTH       16
+#define PX4_CPU_UUID_WORD32_LENGTH     (PX4_CPU_UUID_BYTE_LENGTH / 4)
 
-int px4_at24c_initialize(FAR struct i2c_master_s *dev,
-			 uint8_t address, FAR struct mtd_dev_s **mtd_dev);
+#define PX4_CPU_MFGUID_BYTE_LENGTH     16
+#define PX4_CPU_MFGUID_WORD32_LENGTH   (PX4_CPU_MFGUID_BYTE_LENGTH / 4)
 
-void px4_at24c_deinitialize(void);
+/* PX4 critical section wrappers used by parameters, etc. */
+static inline irqstate_t px4_enter_critical_section(void)
+{
+  return enter_critical_section();
+}
 
-int flexspi_attach(mtd_instance_s *instance);
+static inline void px4_leave_critical_section(irqstate_t flags)
+{
+  leave_critical_section(flags);
+}
+
+/* Board HW type string used by src/lib/version */
+__EXPORT const char *board_get_hw_type_name(void);
+
+/* CPU IDs (you can keep them zero for now) */
+__EXPORT void px4_cpu_uuid_get(uint32_t *uuid_words);
+__EXPORT void px4_cpu_mfguid_get(uint32_t *mfguid_words);
 
 __END_DECLS
+

@@ -35,6 +35,18 @@
 
 #include <board_config.h>
 
+#if defined(CONFIG_ARCH_BOARD_NXP_MX8MN)
+#  include <nuttx/i2c/i2c_master.h>
+
+__BEGIN_DECLS
+
+FAR struct i2c_master_s *px4_i2cbus_initialize(int bus);
+int px4_i2cbus_uninitialize(FAR struct i2c_master_s *dev);
+
+__END_DECLS
+#endif
+
+
 #if defined(CONFIG_I2C)
 
 #define I2C_BUS_MAX_BUS_ITEMS PX4_NUMBER_I2C_BUSES

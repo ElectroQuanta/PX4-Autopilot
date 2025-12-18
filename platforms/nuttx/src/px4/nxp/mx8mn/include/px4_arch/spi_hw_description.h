@@ -31,67 +31,13 @@
  *
  ****************************************************************************/
 #pragma once
-#include <stdint.h>
 
-#if defined(CONFIG_ARCH_BOARD_NXP_MX8MN)
-#include <px4_platform_common/px4_config.h>
+#if defined(CONFIG_SPI)
 
-#include <nuttx/i2c/i2c_master.h>
-/* Forward declaration for NuttX I2C driver type
- * (normally defined in <nuttx/i2c/i2c_master.h>).
- */
-struct i2c_master_s;
-#endif
+#include "../../../kinetis/include/px4_arch/spi_hw_description.h"
 
-__BEGIN_DECLS
-
-#define MAX_MTD_INSTANCES 5u
-
-// The data needed to interface with mtd device's
-
-typedef struct {
-	struct mtd_dev_s *mtd_dev;
-	int              *partition_block_counts;
-	int              *partition_types;
-	const char       **partition_names;
-	struct mtd_dev_s **part_dev;
-	uint32_t         devid;
-	unsigned         n_partitions_current;
-} mtd_instance_s;
-
-/*
-  mtd operations
- */
-
-/*
- * Get device an pinter to the array of mtd_instance_s of the system
- *  count - receives the number of instances pointed to by the pointer
- *  retunred.
- *
- *  returns: - A pointer to the mtd_instance_s of the system
- *            This can be  Null if there are no mtd instances.
- *
- */
-__EXPORT mtd_instance_s **px4_mtd_get_instances(unsigned int *count);
-
-/*
-  Get device complete geometry or a device
- */
-
-
-__EXPORT int  px4_mtd_get_geometry(const mtd_instance_s *instance, unsigned long *blocksize, unsigned long *erasesize,
-				   unsigned long *neraseblocks, unsigned *blkpererase, unsigned *nblocks,
-				   unsigned *partsize);
-/*
-  Get size of a parttion on an instance.
- */
-__EXPORT ssize_t px4_mtd_get_partition_size(const mtd_instance_s *instance, const char *partname);
-
-int px4_at24c_initialize(FAR struct i2c_master_s *dev,
-			 uint8_t address, FAR struct mtd_dev_s **mtd_dev);
-
-void px4_at24c_deinitialize(void);
-
-int flexspi_attach(mtd_instance_s *instance);
-
-__END_DECLS
+constexpr bool validateSPIConfig(const px4_spi_bus_t spi_busses_conf[SPI_BUS_MAX_BUS_ITEMS])
+{
+	return true;
+}
+#endif // CONFIG_SPI

@@ -1,7 +1,7 @@
-/****************************************************************************
+/************************************************************************************
  *
- *   Copyright (C) 2017 PX4 Development Team. All rights reserved.
- *   Author: @author David Sidrane <david_s5@nscdg.com>
+ *   Copyright (C) 2018 Gregory Nutt. All rights reserved.
+ *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
+ * 3. Neither the name NuttX nor the names of its contributors may be
  *    used to endorse or promote products derived from this software
  *    without specific prior written permission.
  *
@@ -30,44 +30,37 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- ****************************************************************************/
-
-/**
- * @file gpio.c
- * Implementation of Generic PIO init Note we use he HAL version of configgpio
- * So this will work with any ARCH
- */
-
-#include <px4_platform_common/px4_config.h>
-
-#if defined(CONFIG_ARCH_BOARD_NXP_MX8MN)
-/* Minimal stub for bring-up on mx8mn:
- * px4_gpio_init() will call this, but we don't touch real hardware yet.
- */
-void px4_arch_configgpio(uint32_t cfgset)
-{
-	(void)cfgset;
-}
-#endif
+ ************************************************************************************/
 
 /************************************************************************************
- * Name: px4_gpio_init
- *
- * Description:
- *   A board may provide a list of GPI pins to get initialized
- *
- *  list    - A list of GPIO pins to be initialized
- *  count   - Size of the list
- *
- * return  - Nothing
-  ************************************************************************************/
+ * Included Files
+ ************************************************************************************/
 
+#include <nuttx/config.h>
+#include <arch/board/board.h>
 
-void px4_gpio_init(const uint32_t list[], int count)
-{
-	for (int gpio = 0; gpio < count; gpio++) {
-		if (list[gpio] != 0) {
-			px4_arch_configgpio(list[gpio]);
-		}
-	}
-}
+#if defined(CONFIG_SCHED_CRITMONITOR) || defined(CONFIG_SCHED_IRQMONITOR)
+
+/************************************************************************************
+ * Public Functions
+ ************************************************************************************/
+
+#error "missing implementation for up_critmon_gettime() and up_critmon_convert()"
+
+/************************************************************************************
+ * Name: up_critmon_gettime
+ ************************************************************************************/
+
+// uint32_t up_critmon_gettime(void)
+// {
+// }
+
+/************************************************************************************
+ * Name: up_critmon_convert
+ ************************************************************************************/
+
+// void up_critmon_convert(uint32_t elapsed, FAR struct timespec *ts)
+// {
+// }
+
+#endif /* CONFIG_SCHED_CRITMONITOR */
