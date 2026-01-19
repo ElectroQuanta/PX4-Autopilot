@@ -42,7 +42,7 @@ add_subdirectory(hrt)
 add_subdirectory(board_reset)
 add_subdirectory(board_critmon)
 add_subdirectory(version)
-add_subdirectory(romfs)
+# add_subdirectory(romfs)
 
 # Optional: chip-local include path (if you add px4_arch headers later)
 # add_library(arch_mx8mn INTERFACE)
