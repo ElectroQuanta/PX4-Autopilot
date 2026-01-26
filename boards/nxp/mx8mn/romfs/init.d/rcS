@@ -1,3 +1,0 @@
-#!/bin/sh
-echo "PX4 ROMFS rcS running"
-ver all
