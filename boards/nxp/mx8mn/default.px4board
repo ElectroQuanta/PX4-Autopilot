@@ -73,7 +73,9 @@ CONFIG_SYSTEMCMDS_TOPIC_LISTENER=n
 # --- Examples: disable ---
 CONFIG_EXAMPLES_FAKE_GPS=n
 
-######## Commander requirements
+####################################################
+# Commander
+####################################################
 CONFIG_MODULES_COMMANDER=y
 CONFIG_MODULES_NAVIGATOR=y
 CONFIG_MODULES_SENSORS=y
@@ -92,14 +94,9 @@ CONFIG_MODULES_EKF2=y  # Or use lightweight alternative below
 
 ######## System monitoring
 CONFIG_MODULES_LOAD_MON=y
-# CONFIG_MODULES_BATTERY_STATUS=y
 
 ######## Communication
 # CONFIG_MODULES_MAVLINK=y
-
-######## Logger (useful for debugging)
-CONFIG_MODULES_LOGGER=n  # Disable to save memory if needed
-
 
 ##### Flight Mode manager
 CONFIG_MODULES_FLIGHT_MODE_MANAGER=y
@@ -107,3 +104,12 @@ CONFIG_MODULES_MC_RATE_CONTROL=y
 CONFIG_MODULES_MC_ATT_CONTROL=y
 CONFIG_MODULES_MC_POS_CONTROL=y
 CONFIG_MODULES_MAVLINK=y
+
+
+####################################################
+# BATTERY
+####################################################
+CONFIG_MODULES_BATTERY_STATUS=y
+CONFIG_MODULES_ESC_BATTERY=y
+CONFIG_DRIVERS_BATT_SMBUS=y
+CONFIG_DRIVERS_SMART_BATTERY_BATMON=y

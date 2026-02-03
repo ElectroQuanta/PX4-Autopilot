@@ -51,6 +51,10 @@ __BEGIN_DECLS
  */
 #include <arch/board/board.h>
 
+/* ADC channels - Define dummy values for now */
+#define ADC_BATTERY_VOLTAGE_CHANNEL  ((uint8_t)0)  /* Dummy - no actual ADC */
+#define ADC_BATTERY_CURRENT_CHANNEL  ((uint8_t)0)  /* Dummy - no actual ADC */
+
 /* cache-aligned allocation used by uORB and others */
 __EXPORT void *px4_cache_aligned_alloc(size_t size);
 __EXPORT void  px4_cache_aligned_free(void *ptr);
