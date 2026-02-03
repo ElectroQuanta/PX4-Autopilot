@@ -3,6 +3,56 @@
 # board specific defaults
 #------------------------------------------------------------------------------
 
-echo "PX4 ROMFS rc.board_defaults running"
-ver all
-exit 0
+echo ">> PX4 ROMFS rc.board_defaults running"
+
+# Set some basic params in RAM (won't persist)
+param set SYS_AUTOSTART 0
+param set MAV_SYS_ID 1
+param set SYS_DM_BACKEND 1
+
+# # Select parameter file location
+# param select /fs/mtd_params
+
+# # Check if parameters exist
+# if [ -f /fs/mtd_params ]
+# then
+#     echo "Loading existing parameters..."
+#     param load /fs/mtd_params
+# else
+#     echo "No parameters found - loading defaults from ROMFS"
+    
+#     # Import default parameters from ROMFS
+#     if [ -f /etc/extras/parameters ]
+#     then
+#         param load /etc/extras/parameters
+#         echo "Loaded ROMFS defaults"
+#     else
+#         echo "WARNING: No default parameters found"
+#     fi
+# fi
+
+# # Try to set board defaults (these will fail if parameters don't exist in build)
+# # Use 'param set' instead of 'param set-default' to create them if missing
+# if param set SYS_AUTOSTART 0 2>/dev/null
+# then
+#     echo "Set SYS_AUTOSTART"
+# fi
+
+# if param set SYS_DM_BACKEND 0 2>/dev/null
+# then
+#     echo "Set SYS_DM_BACKEND"
+# fi
+
+# # Save parameters
+# echo "Saving parameters..."
+# param save
+
+# echo "Parameters ready"
+
+# param set-default BAT1_V_DIV 10.177939394
+# param set-default BAT1_A_PER_V 15.391030303
+
+# rgbled_pwm start
+# safety_button start
+
+

@@ -114,13 +114,36 @@ __EXPORT void mx8mn_board_initialize(void)
  * PX4 entry: do platform-level init here.
  ****************************************************************************/
 
+#include <nuttx/config.h>
+#include <nuttx/board.h>
+#include <sys/mount.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <syslog.h>
+#include <errno.h>
+
+#define PARAM_MTD_SIZE (64 * 1024)  // 64KB for parameters
+
 __EXPORT int board_app_initialize(uintptr_t arg)
 {
     (void)arg;
+	int ret;
 
-    /* PX4 core platform initialization
-     * (work queues, uORB, etc.)
-     */
+	syslog(LOG_INFO, "[TMPFS]: creating parameter storage...\n");
+    
+    /* Create /fs directory */
+    mkdir("/fs", 0777);
+    
+    /* Mount TMPFS to /fs */
+    ret = mount(NULL, "/fs", "tmpfs", 0, "mode=0777");
+    if (ret < 0) {
+	  syslog(LOG_ERR, "Failed to mount /fs: errno=%d\n", errno);
+    } else {
+	  syslog(LOG_INFO, "[TMPFS]: /fs mounted OK - PX4 will create param files\n");
+    }
+    
+
+    /* PX4 core init */
     px4_platform_init();
 
     return OK;

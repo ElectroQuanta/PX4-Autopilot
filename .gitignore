@@ -113,3 +113,6 @@ keys/
 # Backup files
 *.bkp
 *_bkp/
+
+# Debug
+debug/
