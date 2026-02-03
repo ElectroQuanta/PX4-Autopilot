@@ -91,7 +91,7 @@ CONFIG_MODULES_EKF2=y  # Or use lightweight alternative below
 # CONFIG_MODULES_ATTITUDE_ESTIMATOR_Q=y  # Lightweight alternative
 
 ######## System monitoring
-# CONFIG_MODULES_LOAD_MON=y
+CONFIG_MODULES_LOAD_MON=y
 # CONFIG_MODULES_BATTERY_STATUS=y
 
 ######## Communication

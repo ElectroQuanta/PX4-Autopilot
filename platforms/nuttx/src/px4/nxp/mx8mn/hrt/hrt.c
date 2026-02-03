@@ -50,6 +50,8 @@
 #include <nuttx/clock.h>
 #include <time.h>
 #include <string.h>
+#include <nuttx/irq.h>
+#include <px4_platform_common/px4_config.h>
 
 /* Minimal HRT for early boot:
  * - provides monotonic time in microseconds
@@ -97,4 +99,16 @@ void hrt_cancel(struct hrt_call *entry)
 bool hrt_called(struct hrt_call *entry)
 {
     return entry ? (entry->deadline == 0) : true;
+}
+
+
+/**
+ * Store the absolute time in an interrupt-safe fashion
+ */
+void
+hrt_store_absolute_time(volatile hrt_abstime *t)
+{
+	irqstate_t flags = px4_enter_critical_section();
+	*t = hrt_absolute_time();
+	px4_leave_critical_section(flags);
 }
