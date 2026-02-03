@@ -82,7 +82,7 @@ CONFIG_MODULES_DATAMAN=y
 # Dependency modules (generating msgs for commander)
 ######## Control & Input (defines many parameters commander expects)
 CONFIG_MODULES_RC_UPDATE=y
-# CONFIG_DRIVERS_RC_INPUT=y
+CONFIG_DRIVERS_RC_INPUT=y
 CONFIG_MODULES_MANUAL_CONTROL=y
 CONFIG_MODULES_CONTROL_ALLOCATOR=y
 
