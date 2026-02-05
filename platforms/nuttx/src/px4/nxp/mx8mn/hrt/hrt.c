@@ -52,6 +52,17 @@
 #include <string.h>
 #include <nuttx/irq.h>
 #include <px4_platform_common/px4_config.h>
+#include <sys/types.h>
+
+/**
+ * @brief Stubs for Logger
+ *
+ * Taken from Kinetis hrt.c
+ */
+/* latency histogram */
+const uint16_t latency_bucket_count = LATENCY_BUCKET_COUNT;
+const uint16_t latency_buckets[LATENCY_BUCKET_COUNT] = { 1, 2, 5, 10, 20, 50, 100, 1000 };
+__EXPORT uint32_t latency_counters[LATENCY_BUCKET_COUNT + 1];
 
 /* Minimal HRT for early boot:
  * - provides monotonic time in microseconds

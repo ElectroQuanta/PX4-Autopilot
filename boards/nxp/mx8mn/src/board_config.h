@@ -53,7 +53,12 @@ __BEGIN_DECLS
 
 /* ADC channels - Define dummy values for now */
 #define ADC_BATTERY_VOLTAGE_CHANNEL  ((uint8_t)0)  /* Dummy - no actual ADC */
-#define ADC_BATTERY_CURRENT_CHANNEL  ((uint8_t)0)  /* Dummy - no actual ADC */
+#define ADC_BATTERY_CURRENT_CHANNEL ((uint8_t)0)   /* Dummy - no actual ADC */
+
+/* SRF05 on iMX8MN - adjust pin numbers based on your schematic */
+// defined in ./platforms/nuttx/NuttX/nuttx/arch/arm/src/kinetis/kinetis.h
+/* #define GPIO_ULTRASOUND_TRIGGER  /\* PTD0 *\/  (GPIO_LOWDRIVE | GPIO_OUTPUT_ZERO | PIN_PORTD | PIN0) */
+/* #define GPIO_ULTRASOUND_ECHO     /\* PTA10 *\/ (GPIO_PULLUP | PIN_INT_BOTH | PIN_PORTA | PIN10) */
 
 /* cache-aligned allocation used by uORB and others */
 __EXPORT void *px4_cache_aligned_alloc(size_t size);
