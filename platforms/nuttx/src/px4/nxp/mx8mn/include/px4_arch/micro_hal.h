@@ -36,6 +36,9 @@
 #include <nuttx/irq.h>
 #include <stdint.h>
 
+
+#include "../../../nxp_common/include/px4_arch/micro_hal.h"
+
 __BEGIN_DECLS
 
 
@@ -45,8 +48,31 @@ __BEGIN_DECLS
  * You can refine these later once you actually hook up I2C/SPI.
  */
 
-#define PX4_NUMBER_I2C_BUSES   1
+#include <chip.h>
+#include <mx8mn_i2c.h>
+#include <mx8mn_ecspi.h>
+
+#define PX4_NUMBER_I2C_BUSES   2
 #define PX4_NUMBER_SPI_BUSES 1
+
+
+/* bus_num is zero based on kinetis and must be translated from the
+ * legacy one based */
+
+#define PX4_BUS_OFFSET       1  /* Kinetis buses are 0 based and adjustment is needed */
+
+#define px4_spibus_initialize(bus_num_1based)                                  \
+  mx8mn_spibus_initialize(PX4_BUS_NUMBER_FROM_PX4(bus_num_1based))
+
+/* #define px4_i2cbus_initialize(bus_num_1based)                                  \ */
+/*   mx8mn_i2cbus_initialize(PX4_BUS_NUMBER_FROM_PX4(bus_num_1based)) */
+
+/* #define px4_i2cbus_uninitialize(pdev) mx8mn_i2cbus_uninitialize(pdev) */
+
+
+#define px4_i2cbus_initialize mx8mn_i2cbus_initialize
+#define px4_i2cbus_uninitialize mx8mn_i2cbus_uninitialize
+
 
 
 /* PX4 expects these lengths to exist at compile time */
@@ -57,15 +83,15 @@ __BEGIN_DECLS
 #define PX4_CPU_MFGUID_WORD32_LENGTH   (PX4_CPU_MFGUID_BYTE_LENGTH / 4)
 
 /* PX4 critical section wrappers used by parameters, etc. */
-static inline irqstate_t px4_enter_critical_section(void)
-{
-  return enter_critical_section();
-}
+/* static inline irqstate_t px4_enter_critical_section(void) */
+/* { */
+/*   return enter_critical_section(); */
+/* } */
 
-static inline void px4_leave_critical_section(irqstate_t flags)
-{
-  leave_critical_section(flags);
-}
+/* static inline void px4_leave_critical_section(irqstate_t flags) */
+/* { */
+/*   leave_critical_section(flags); */
+/* } */
 
 /* Board HW type string used by src/lib/version */
 __EXPORT const char *board_get_hw_type_name(void);
