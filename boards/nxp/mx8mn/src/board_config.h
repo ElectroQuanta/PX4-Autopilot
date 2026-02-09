@@ -60,9 +60,9 @@ __BEGIN_DECLS
 /* #define GPIO_ULTRASOUND_TRIGGER  /\* PTD0 *\/  (GPIO_LOWDRIVE | GPIO_OUTPUT_ZERO | PIN_PORTD | PIN0) */
 /* #define GPIO_ULTRASOUND_ECHO     /\* PTA10 *\/ (GPIO_PULLUP | PIN_INT_BOTH | PIN_PORTA | PIN10) */
 
-/* cache-aligned allocation used by uORB and others */
-__EXPORT void *px4_cache_aligned_alloc(size_t size);
-__EXPORT void  px4_cache_aligned_free(void *ptr);
+/* /\* cache-aligned allocation used by uORB and others *\/ */
+/* __EXPORT void *px4_cache_aligned_alloc(size_t size); */
+/* __EXPORT void  px4_cache_aligned_free(void *ptr); */
 
 __END_DECLS
 
