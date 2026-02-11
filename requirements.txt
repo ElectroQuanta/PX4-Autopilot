@@ -10,4 +10,4 @@ pyros-genmsg==0.5.8
 PyYAML==6.0.3
 referencing==0.37.0
 rpds-py==0.30.0
-setuptools==82.0.0
+setuptools==80.10.2
