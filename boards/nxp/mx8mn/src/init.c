@@ -57,6 +57,12 @@
 
 #include <px4_platform_common/init.h>
 
+#include "board_config.h"
+#include <nuttx/i2c/i2c_master.h>
+#include <px4_platform/gpio.h> // px4_gpio_init
+#include <systemlib/px4_macros.h> // arraySize
+#include <mx8mn_iomuxc.h>
+/* #include <imx8mn-ddr3l-evk.h> */
 /****************************************************************************
  * Optional LED functions (only if you later enable LED driver)
  ****************************************************************************/
@@ -106,13 +112,19 @@ __EXPORT void mx8mn_board_initialize(void)
      *  - configure timers
      *  - configure sensors, SD, etc.
      */
-}
 
-/****************************************************************************
- * Name: board_app_initialize
- *
- * PX4 entry: do platform-level init here.
- ****************************************************************************/
+    /* /\* configure LEDs *\/ */
+    /* board_autoled_initialize(); */
+
+    /* const uint32_t gpio[] = PX4_GPIO_INIT_LIST; */
+    /* px4_gpio_init(gpio, arraySize(gpio)); */
+
+    /* fmuk66_timer_initialize(); */
+
+    /* /\* Power on Spektrum *\/ */
+
+    /* VDD_3V3_SPEKTRUM_POWER_EN(true); */
+}
 
 #include <nuttx/config.h>
 #include <nuttx/board.h>
@@ -122,30 +134,79 @@ __EXPORT void mx8mn_board_initialize(void)
 #include <syslog.h>
 #include <errno.h>
 
-#define PARAM_MTD_SIZE (64 * 1024)  // 64KB for parameters
+#define PARAM_MTD_SIZE (64 * 1024) // 64KB for parameters
+
+/****************************************************************************
+ * Name: board_i2c_init
+ *
+ * Used to debug I2C initialization
+ ****************************************************************************/
+
+/* static void board_i2c_init(void) { */
+
+/*   /\* 1. Hardware Pin Muxing *\/ */
+/*   mx8mn_iomuxc_config(IOMUX_I2C1_SCL); */
+/*   mx8mn_iomuxc_config(IOMUX_I2C1_SDA); */
+
+/*   mx8mn_iomuxc_config(IOMUX_I2C2_SCL); */
+/*   mx8mn_iomuxc_config(IOMUX_I2C2_SDA); */
+
+/*   mx8mn_iomuxc_config(IOMUX_I2C3_SCL); */
+/*   mx8mn_iomuxc_config(IOMUX_I2C3_SDA); */
+    
+/*   mx8mn_iomuxc_config(IOMUX_I2C4_SCL); */
+/*   mx8mn_iomuxc_config(IOMUX_I2C4_SDA); */
+
+/*   /\* Test all available buses *\/   */
+/* for (int i = 0; i < PX4_NUMBER_I2C_BUSES + 1; i++) { */
+/*     struct i2c_master_s *test_ptr = mx8mn_i2cbus_initialize(i); */
+/*     if (test_ptr != NULL) { */
+/*         syslog(LOG_INFO, "[I2C] Phys Idx %d VALID\r\n", i); */
+        
+/*         // Try to read the WHO_AM_I register (0x00) of the IST8310 (0x0E) */
+/*         uint8_t reg = 0x00; */
+/*         uint8_t val = 0; */
+/*         struct i2c_msg_s msg[2]; */
+/*         msg[0].addr = 0x0E; msg[0].flags = 0;          msg[0].buffer = &reg; msg[0].length = 1; */
+/*         msg[1].addr = 0x0E; msg[1].flags = I2C_M_READ; msg[1].buffer = &val; msg[1].length = 1; */
+
+/*         if (I2C_TRANSFER(test_ptr, msg, 2) == OK) { */
+/*              syslog(LOG_INFO, "[I2C] -> FOUND IST8310 on Phys Idx %d!\r\n", i); */
+/*         } */
+/*     } */
+/*  } */
+/* } */
+
+/****************************************************************************
+ * Name: board_app_initialize
+ *
+ * PX4 entry: do platform-level init here.
+ ****************************************************************************/
 
 __EXPORT int board_app_initialize(uintptr_t arg)
 {
-    (void)arg;
-	int ret;
+  (void)arg;
+  int ret;
 
-	syslog(LOG_INFO, "[TMPFS]: creating parameter storage...\n");
+  /* Create /fs directory */
+  mkdir("/fs", 0777);
     
-    /* Create /fs directory */
-    mkdir("/fs", 0777);
-    
-    /* Mount TMPFS to /fs */
-    ret = mount(NULL, "/fs", "tmpfs", 0, "mode=0777");
-    if (ret < 0) {
-	  syslog(LOG_ERR, "Failed to mount /fs: errno=%d\n", errno);
-    } else {
-	  syslog(LOG_INFO, "[TMPFS]: /fs mounted OK - PX4 will create param files\n");
-    }
-    
+  /* Mount TMPFS to /fs */
+  ret = mount(NULL, "/fs", "tmpfs", 0, "mode=0777");
+  if (ret < 0) {
+    syslog(LOG_ERR, "[TMPFS]: Failed to mount /fs: errno=%d\n", errno);
+  } else {
+    syslog(LOG_INFO, "[TMPFS]: /fs mounted OK - PX4 will create param files\n");
+  }
 
-    /* PX4 core init */
-    px4_platform_init();
+  /* PX4 core init */
 
-    return OK;
+  px4_platform_init();
+
+  /* I2C init (debug)*/
+
+  /* board_i2c_init(); */
+
+  return OK;
 }
 

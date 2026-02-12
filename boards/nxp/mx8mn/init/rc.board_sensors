@@ -1,9 +1,12 @@
 #!/bin/sh
 #
-# NXP fmuk66-e specific board defaults
+# NXP mx8mn specific board defaults
 #------------------------------------------------------------------------------
 
 echo ">> PX4 ROMFS rc.board_sensors running"
+
+ist8310 -I -b 1 -R 10 start
+ist8310 -X -b 4 -R 10 start
 
 # board_adc start
 

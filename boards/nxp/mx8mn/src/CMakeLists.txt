@@ -35,7 +35,7 @@ add_library(drivers_board
 	autoleds.c
 	# automount.c
 	# can.c
-	# i2c.cpp
+	i2c.cpp
 	init.c
 	# led.c
 	# # sdhc.c
@@ -50,8 +50,8 @@ add_library(drivers_board
 target_link_libraries(drivers_board
 	PRIVATE
 		# arch_io_pins
-		# nuttx_arch # sdio
-		# nuttx_drivers # sdio
+		nuttx_arch # sdio
+		nuttx_drivers # sdio
 		# drivers__led # drv_led_start
 		px4_layer
 	)

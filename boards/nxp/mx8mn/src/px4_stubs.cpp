@@ -1,13 +1,13 @@
 #include <px4_platform_common/px4_config.h>          // __EXPORT, __BEGIN_DECLS
 #include <px4_platform_common/board_common.h>        // board_bus_types, UUID/GUID APIs & lengths
 
-#include <px4_platform_common/i2c.h>                 // px4_i2c_bus_t, PX4_NUMBER_I2C_BUSES
+// #include <px4_platform_common/i2c.h>                 // px4_i2c_bus_t, PX4_NUMBER_I2C_BUSES
 
-#include <nuttx/i2c/i2c_master.h>                    // struct i2c_master_s
+// #include <nuttx/i2c/i2c_master.h>                    // struct i2c_master_s
 // #include <string.h>                                  // memset
 // #include <stdint.h>
 
-__EXPORT extern const px4_i2c_bus_t px4_i2c_buses[PX4_NUMBER_I2C_BUSES] = { px4_i2c_bus_t{} };
+// __EXPORT extern const px4_i2c_bus_t px4_i2c_buses[PX4_NUMBER_I2C_BUSES] = { px4_i2c_bus_t{} };
 
 __BEGIN_DECLS
 

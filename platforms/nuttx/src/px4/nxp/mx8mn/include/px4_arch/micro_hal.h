@@ -41,6 +41,10 @@
 
 __BEGIN_DECLS
 
+#ifndef __ASSEMBLY__
+#include <nuttx/i2c/i2c_master.h>
+#include <nuttx/spi/spi_transfer.h> // For SPI commands to work too
+#endif
 
 /* For minimal bring-up:
  * - we tell PX4 there is 1 dummy I2C bus entry
@@ -50,31 +54,16 @@ __BEGIN_DECLS
 
 #include <chip.h>
 #include <mx8mn_i2c.h>
+#include <mx8mn_gpio.h>
 #include <mx8mn_ecspi.h>
 
-#define PX4_NUMBER_I2C_BUSES   2
+#define PX4_NUMBER_I2C_BUSES   4
 #define PX4_NUMBER_SPI_BUSES 1
 
+#define GPIO_OUTPUT_SET             GPIO_OUTPUT_ONE
+#define GPIO_OUTPUT_CLEAR GPIO_OUTPUT_ZERO
 
-/* bus_num is zero based on kinetis and must be translated from the
- * legacy one based */
-
-#define PX4_BUS_OFFSET       1  /* Kinetis buses are 0 based and adjustment is needed */
-
-#define px4_spibus_initialize(bus_num_1based)                                  \
-  mx8mn_spibus_initialize(PX4_BUS_NUMBER_FROM_PX4(bus_num_1based))
-
-/* #define px4_i2cbus_initialize(bus_num_1based)                                  \ */
-/*   mx8mn_i2cbus_initialize(PX4_BUS_NUMBER_FROM_PX4(bus_num_1based)) */
-
-/* #define px4_i2cbus_uninitialize(pdev) mx8mn_i2cbus_uninitialize(pdev) */
-
-
-#define px4_i2cbus_initialize mx8mn_i2cbus_initialize
-#define px4_i2cbus_uninitialize mx8mn_i2cbus_uninitialize
-
-
-
+/** ================== PX4 stubs =============================== */
 /* PX4 expects these lengths to exist at compile time */
 #define PX4_CPU_UUID_BYTE_LENGTH       16
 #define PX4_CPU_UUID_WORD32_LENGTH     (PX4_CPU_UUID_BYTE_LENGTH / 4)
@@ -82,23 +71,64 @@ __BEGIN_DECLS
 #define PX4_CPU_MFGUID_BYTE_LENGTH     16
 #define PX4_CPU_MFGUID_WORD32_LENGTH   (PX4_CPU_MFGUID_BYTE_LENGTH / 4)
 
-/* PX4 critical section wrappers used by parameters, etc. */
-/* static inline irqstate_t px4_enter_critical_section(void) */
-/* { */
-/*   return enter_critical_section(); */
-/* } */
-
-/* static inline void px4_leave_critical_section(irqstate_t flags) */
-/* { */
-/*   leave_critical_section(flags); */
-/* } */
-
 /* Board HW type string used by src/lib/version */
 __EXPORT const char *board_get_hw_type_name(void);
 
 /* CPU IDs (you can keep them zero for now) */
 __EXPORT void px4_cpu_uuid_get(uint32_t *uuid_words);
 __EXPORT void px4_cpu_mfguid_get(uint32_t *mfguid_words);
+/** ============================================================ */
+
+
+/* bus_num is 1-based on mx8mn such as PX4, so no adjustment is required */
+#define PX4_BUS_OFFSET       0  /* mx8mn buses are 1-based */
+
+/* Map the initialization function directly */
+#define px4_i2cbus_initialize(bus_num)  mx8mn_i2cbus_initialize(bus_num)
+#define px4_i2cbus_uninitialize(pdev)   mx8mn_i2cbus_uninitialize(pdev)
+
+/* Do the same for SPI if needed */
+#define px4_spibus_initialize(bus_num)  mx8mn_spibus_initialize(bus_num)
+
+
+/* #define px4_arch_configgpio(pinset)             mx8mn_gpio_config(pinset) */
+/* #define px4_arch_unconfiggpio(pinset) */
+/* #define px4_arch_gpioread(pinset)               mx8mn_gpio_read(pinset) */
+/* #define px4_arch_gpiowrite(pinset, value) mx8mn_gpio_write(pinset, value) */
+
+/* Mask to clear Mode, Value, and Interrupt bits (31, 30, 29, 27, 26, 25) */
+#define _GPIO_CFG_MASK                                                         \
+  (GPIO_MODE_MASK | GPIO_OUTPUT_ONE | GPIO_INTCFG_MASK | GPIO_INTBOTHCFG_MASK)
+
+/* Base macro to clear functional bits and apply new ones */
+#define _PX4_MAKE_GPIO(pin_cfg, io) \
+    (((uint32_t)(pin_cfg) & ~(_GPIO_CFG_MASK)) | (uint32_t)(io))
+
+/* 1. Configure as Input */
+#define PX4_MAKE_GPIO_INPUT(gpio) \
+    _PX4_MAKE_GPIO(gpio, GPIO_INPUT)
+
+/* 2. Configure as External Interrupt (Both Edges) */
+#define PX4_MAKE_GPIO_EXTI(gpio) \
+    _PX4_MAKE_GPIO(gpio, GPIO_INTERRUPT | GPIO_INTBOTH_EDGES)
+
+/* 3. Configure as Output and set HIGH (Initial Value 1) */
+#define PX4_MAKE_GPIO_OUTPUT_SET(gpio) \
+    _PX4_MAKE_GPIO(gpio, GPIO_OUTPUT | GPIO_OUTPUT_ONE)
+
+/* 4. Configure as Output and set LOW (Initial Value 0) */
+#define PX4_MAKE_GPIO_OUTPUT_CLEAR(gpio) \
+    _PX4_MAKE_GPIO(gpio, GPIO_OUTPUT | GPIO_OUTPUT_ZERO)
+
+/** ================== TODO =========================== */
+/* ADD GPIO Set Event for interrupt handling at PX4 Level
+ * - requires IO pins
+ */
+/* /\* kinetis_gpiosetevent is added at PX4 level *\/ */
+/* int kinetis_gpiosetevent(uint32_t pinset, bool risingedge, bool fallingedge, bool event, xcpt_t func, void *arg); */
+
+/* #define px4_arch_gpiosetevent(pinset,r,f,e,fp,a)  kinetis_gpiosetevent(pinset,r,f,e,fp,a) */
+/** =================================================== */
 
 __END_DECLS
 
