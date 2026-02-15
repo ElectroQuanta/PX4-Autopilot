@@ -46,6 +46,7 @@
  ****************************************************************************/
 
 #include <px4_platform_common/px4_config.h>
+#include <px4_platform/gpio.h> // px4_gpio_init
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -58,11 +59,12 @@
 #include <px4_platform_common/init.h>
 
 #include "board_config.h"
+#include <nuttx/spi/spi.h>
 #include <nuttx/i2c/i2c_master.h>
-#include <px4_platform/gpio.h> // px4_gpio_init
-#include <systemlib/px4_macros.h> // arraySize
+
 #include <mx8mn_iomuxc.h>
-/* #include <imx8mn-ddr3l-evk.h> */
+
+#include <systemlib/px4_macros.h> // arraySize
 /****************************************************************************
  * Optional LED functions (only if you later enable LED driver)
  ****************************************************************************/
@@ -199,6 +201,11 @@ __EXPORT int board_app_initialize(uintptr_t arg)
     syslog(LOG_INFO, "[TMPFS]: /fs mounted OK - PX4 will create param files\n");
   }
 
+
+  /* configure SPI interfaces */
+  
+  mx8mn_spidev_initialize();
+
   /* PX4 core init */
 
   px4_platform_init();
@@ -206,6 +213,14 @@ __EXPORT int board_app_initialize(uintptr_t arg)
   /* I2C init (debug)*/
 
   /* board_i2c_init(); */
+
+
+#ifdef CONFIG_SPI
+	ret = mx8mn_spi_bus_initialize();
+
+	syslog(LOG_INFO, "[SPI]: Bus init = %d\n", ret);
+
+#endif
 
   return OK;
 }

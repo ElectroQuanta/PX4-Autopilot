@@ -34,7 +34,7 @@
 /**
  * @file board_config.h
  *
- * NXP fmuk66-e internal definitions
+ * NXP mx8mn-e internal definitions
  */
 
 #pragma once
@@ -45,9 +45,11 @@
 
 __BEGIN_DECLS
 
-/* Only pull the generic board header.
- * DO NOT include kinetis.h or kinetis_pinmux.h here.
- */
+/* These headers provide the i.MX8MN specific register offsets and bit definitions */
+#include <hardware/mx8mn_pinmux.h>
+#include <hardware/mx8mn_gpio.h>
+
+/* This header contains your specific board pin assignments (GPIO_ICM42688_DRDY, etc.) */
 #include <arch/board/board.h>
 
 /* ADC channels - Define dummy values for now */
@@ -106,6 +108,75 @@ __END_DECLS
 /* I2C4 - Common for Power Monitors (INA219) */
 #define IOMUX_I2C4_SCL IOMUXC_I2C4_SCL_I2C4_SCL, I2C_MUX_SION, I2C_PAD_CTRL
 #define IOMUX_I2C4_SDA IOMUXC_I2C4_SDA_I2C4_SDA, I2C_MUX_SION, I2C_PAD_CTRL
+
+
+/* UART3 + Flow Control (Sacrificing SPI1 Pins): Telem Radio */
+
+#define IOMUX_UART3_RX   IOMUXC_UART3_RXD_UART3_RX, 0, UART_PAD_CTRL
+#define IOMUX_UART3_TX   IOMUXC_UART3_TXD_UART3_TX, 0, UART_PAD_CTRL
+#define IOMUX_UART3_RTS  IOMUXC_ECSPI1_MISO_UART3_RTS_B, 1, UART_PAD_CTRL
+#define IOMUX_UART3_CTS IOMUXC_ECSPI1_MISO_UART3_CTS_B, 1, UART_PAD_CTRL
+
+/* Sensor Power Control */
+/** TODO: Verify macro */
+#define GPIO_VDD_3V3_SENSORS_EN (GPIO_PORT3 | GPIO_PIN19 | GPIO_OUTPUT | GPIO_OUTPUT_ZERO)
+#define VDD_3V3_SENSORS_EN(v) mx8mn_gpio_write(GPIO_VDD_3V3_SENSORS_EN, (v))
+
+/* SPI configuration **********************************************************/
+/* SPI1 is defined by default;
+ * SPI2 requires (see mx8mn_spidev.c):
+ * - IOMUXC: see mx8mn_pinmux.h
+ *   - IOMUXC_SPI2_MISO
+ *   - IOMUXC_SPI2_MOSI
+ *   - IOMUXC_SPI2_SCLK
+ *   - IOMUXC_SPI2_CS: choose a pin that provides GPIO (SW control, ALT5)
+ * - GPIO: see mx8mn_gpio.h
+ *   - GPIO_SPI2_CS
+ */
+
+#define IOMUXC_SPI2_MISO IOMUXC_ECSPI2_MISO_ECSPI2_MISO, 0, SPI_PAD_CTRL
+#define IOMUXC_SPI2_MOSI IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI, 0, SPI_PAD_CTRL
+#define IOMUXC_SPI2_CLK IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK, 0, SPI_PAD_CTRL
+
+/* /\* * SPI Bus Pad Control (SCLK, MOSI): */
+/*  * - DSE6: Maximum drive strength to maintain square waves at 24MHz. */
+/*  * - FSEL: Fast slew rate to minimize transition time. */
+/*  * - HYS:  Enable Schmitt trigger for cleaner sampling. */
+/*  *\/ */
+/* #define SPI_BUS_OUT_PAD_CTRL  (PAD_CTL_DSE6 | PAD_CTL_FSEL | PAD_CTL_HYS) */
+
+/* /\* * SPI MISO Pad Control: */
+/*  * - HYS: Schmitt trigger is mandatory for noise immunity on the return data. */
+/*  * - PE/PUE: Weak pull-up to prevent the line from floating when no slave is selected. */
+/*  *\/ */
+/* #define SPI_BUS_IN_PAD_CTRL   (PAD_CTL_HYS | PAD_CTL_PE | PAD_CTL_PUE | PAD_CTL_DSE2) */
+
+/* #define IOMUXC_SPI2_MISO IOMUXC_ECSPI2_MISO_ECSPI2_MISO, 0, SPI_BUS_IN_PAD_CTRL */
+/* #define IOMUXC_SPI2_MOSI IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI, 0, SPI_BUS_OUT_PAD_CTRL */
+/* #define IOMUXC_SPI2_CLK IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK, 0, SPI_BUS_OUT_PAD_CTRL */
+
+/* SPI2 Chip Selects */
+// BMI_ACCEL_CS: IOMUXC_ECSPI2_SCLK_GPIO5_IO10
+// BMI_ACCEL_CS: IOMUXC_SAI5_RXD2_GPIO3_IO23
+// BMI_ACCEL_CS: IOMUXC_ECSPI2_SS0_GPIO5_IO13 
+// BMI_GYRO_CS: IOMUXC_SAI5_RXD1_GPIO3_IO22
+// ICM42688_CS: IOMUXC_SAI5_RXD3_GPIO3_IO24
+// #define IOMUXC_SPI2_CS IOMUXC_ECSPI2_SS0_GPIO5_IO13, 1, SPI_PAD_CTRL
+#define GPIO_SPI2_CS_BMI088_ACCEL (GPIO_PORT5 | GPIO_PIN13 | GPIO_OUTPUT | GPIO_OUTPUT_ONE)
+/* #define GPIO_SPI2_CS_BMI_ACCEL  (GPIO_PORT5 | GPIO_PIN10  | GPIO_OUTPUT | GPIO_OUTPUT_ONE) */
+#define GPIO_SPI2_CS_BMI088_GYRO   (GPIO_PORT3 | GPIO_PIN22 | GPIO_OUTPUT | GPIO_OUTPUT_ONE)
+#define GPIO_SPI2_CS_ICM42688   (GPIO_PORT3 | GPIO_PIN24 | GPIO_OUTPUT | GPIO_OUTPUT_ONE)
+
+/* Data Ready (DRDY) Pins as Inputs with Pull-ups */
+// GPIO_ICM42688_DRDY: IOMUXC_SAI5_RXD2_GPIO3_IO23
+// GPIO_BMI088_DRDY: IOMUXC_SAI5_RXD0_GPIO3_IO21
+// GPIO_BMI088_DRDY: IOMUXC_SAI5_MCLK_GPIO3_IO25
+/* Standard DRDY config for mx8mn */
+#define MX8MN_GPIO_DRDY_CONFIG (GPIO_INTERRUPT | GPIO_INTBOTH_EDGES | PAD_CTL_HYS | PAD_CTL_PE | PAD_CTL_PUE)
+
+#define GPIO_ICM42688_DRDY     (GPIO_PORT3 | GPIO_PIN23 | MX8MN_GPIO_DRDY_CONFIG)
+#define GPIO_BMI088_ACCEL_DRDY     (GPIO_PORT3 | GPIO_PIN21 | MX8MN_GPIO_DRDY_CONFIG)
+#define GPIO_BMI088_GYRO_DRDY     (GPIO_PORT3 | GPIO_PIN25 | MX8MN_GPIO_DRDY_CONFIG)
 
 
 /* /\* I2C1 (PMIC) */
@@ -225,7 +296,36 @@ int mx8mn_i2cdev_initialize(void);
 
 
 /************************************************************************************
- * Name: fmuk66_bringup
+ * Name: mx8mn_spidev_initialize
+ *
+ * Description:
+ *   Called to configure SPI chip select GPIO pins for the NXP MX8MN-E board.
+ *
+ ************************************************************************************/
+
+void mx8mn_spidev_initialize(void);
+
+/************************************************************************************
+ * Name: mx8mn_spi_bus_initialize
+ *
+ * Description:
+ *   Called to configure SPI Buses.
+ *
+ ************************************************************************************/
+
+int  mx8mn_spi_bus_initialize(void);
+
+/****************************************************************************************************
+ * Name: board_spi_reset board_peripheral_reset
+ *
+ * Description:
+ *   Called to reset SPI and the perferal bus
+ *
+ ****************************************************************************************************/
+void board_peripheral_reset(int ms);
+
+/************************************************************************************
+ * Name: mx8mn_bringup
  *
  * Description:
  *   Bring up board features

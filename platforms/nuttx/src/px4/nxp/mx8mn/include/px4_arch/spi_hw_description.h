@@ -32,12 +32,115 @@
  ****************************************************************************/
 #pragma once
 
+#include <px4_arch/hw_description.h>
+#include <px4_platform_common/spi.h>
+
 #if defined(CONFIG_SPI)
 
-#include "../../../kinetis/include/px4_arch/spi_hw_description.h"
+#include <mx8mn_gpio.h>
+#include <hardware/mx8mn_pinmux.h>
 
 constexpr bool validateSPIConfig(const px4_spi_bus_t spi_busses_conf[SPI_BUS_MAX_BUS_ITEMS])
 {
 	return true;
 }
+
+static inline constexpr px4_spi_bus_device_t initSPIDevice(uint32_t devid, SPI::CS cs_gpio, SPI::DRDY drdy_gpio = {})
+{
+    px4_spi_bus_device_t ret{};
+
+    /* * CS Pin: GPIO Output + Initial High
+     * Add PAD_CTL_DSE2 (Medium drive strength) to ensure clean edges 
+     * without causing excessive EMI.
+     */
+    ret.cs_gpio = getGPIOPort(cs_gpio.port) | getGPIOPin(cs_gpio.pin) | 
+                  GPIO_OUTPUT | GPIO_OUTPUT_ONE | PAD_CTL_DSE2;
+
+    if (drdy_gpio.port != GPIO::PortInvalid) {
+        /* * DRDY Pin: GPIO Interrupt + Both Edges
+         * - PAD_CTL_HYS: Enable Schmitt Trigger (essential for clean interrupts)
+         * - PAD_CTL_PE | PAD_CTL_PUE: Enable Pull-up
+         */
+        ret.drdy_gpio = getGPIOPort(drdy_gpio.port) | getGPIOPin(drdy_gpio.pin) | 
+                        GPIO_INTERRUPT | GPIO_INTBOTH_EDGES | 
+                        PAD_CTL_HYS | PAD_CTL_PE | PAD_CTL_PUE;
+    }
+
+    if (PX4_SPIDEVID_TYPE(devid) == 0) {
+        ret.devid = PX4_SPIDEV_ID(PX4_SPI_DEVICE_ID, devid);
+    } else {
+        ret.devid = devid;
+    }
+
+    ret.devtype_driver = PX4_SPI_DEV_ID(devid);
+    return ret;
+}
+
+static inline constexpr px4_spi_bus_t initSPIBus(SPI::Bus bus, const px4_spi_bus_devices_t &devices,
+		GPIO::GPIOPin power_enable = {})
+{
+	px4_spi_bus_t ret{};
+	ret.requires_locking = false;
+
+	for (int i = 0; i < SPI_BUS_MAX_DEVICES; ++i) {
+		ret.devices[i] = devices.devices[i];
+
+		if (ret.devices[i].cs_gpio != 0) {
+			if (PX4_SPI_DEVICE_ID == PX4_SPIDEVID_TYPE(ret.devices[i].devid)) {
+				int same_devices_count = 0;
+				for (int j = 0; j < i; ++j) {
+					if (ret.devices[j].cs_gpio != 0) {
+						same_devices_count += (ret.devices[i].devid & 0xff) == (ret.devices[j].devid & 0xff);
+					}
+				}
+				ret.devices[i].devid |= same_devices_count << 8;
+			} else {
+				ret.requires_locking = true;
+			}
+		}
+	}
+
+ret.bus = (int)bus;
+    ret.is_external = false;
+
+    if (power_enable.port != GPIO::PortInvalid) {
+        /* Power Enable: Solid drive (DSE4) to handle regulator inrush current if needed */
+        ret.power_enable_gpio = getGPIOPort(power_enable.port) | getGPIOPin(power_enable.pin) |
+                                GPIO_OUTPUT | GPIO_OUTPUT_ONE | PAD_CTL_DSE4;
+    }
+
+    return ret;
+}
+
+// just a wrapper since we cannot pass brace-enclosed initialized arrays directly as arguments
+struct bus_device_external_cfg_array_t {
+	SPI::bus_device_external_cfg_t devices[SPI_BUS_MAX_DEVICES];
+};
+
+static inline constexpr px4_spi_bus_t initSPIBusExternal(SPI::Bus bus, const bus_device_external_cfg_array_t &devices)
+{
+	px4_spi_bus_t ret{};
+
+	for (int i = 0; i < SPI_BUS_MAX_DEVICES; ++i) {
+		if (devices.devices[i].cs_gpio.port == GPIO::PortInvalid) {
+			break;
+		}
+
+		ret.devices[i] = initSPIDevice(i, devices.devices[i].cs_gpio, devices.devices[i].drdy_gpio);
+	}
+
+	ret.bus = (int)bus;
+	ret.is_external = true;
+	ret.requires_locking = false; // external buses are never accessed by NuttX drivers
+	return ret;
+}
+
+static inline constexpr SPI::bus_device_external_cfg_t initSPIConfigExternal(SPI::CS cs_gpio, SPI::DRDY drdy_gpio = {})
+{
+	SPI::bus_device_external_cfg_t ret{};
+	ret.cs_gpio = cs_gpio;
+	ret.drdy_gpio = drdy_gpio;
+	return ret;
+}
+
 #endif // CONFIG_SPI

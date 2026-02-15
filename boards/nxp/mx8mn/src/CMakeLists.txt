@@ -39,7 +39,7 @@ add_library(drivers_board
 	init.c
 	# led.c
 	# # sdhc.c
-	# # spi.cpp
+	spi.cpp
 	# timer_config.cpp
 	# usb.c
 	###### Others (initial bring-up) ######

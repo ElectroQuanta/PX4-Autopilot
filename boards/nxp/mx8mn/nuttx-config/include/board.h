@@ -43,6 +43,23 @@
 #define IOMUX_CONSOLE_UART_RX IOMUXC_UART4_RXD_UART4_RX, 0, UART_PAD_CTRL
 #define IOMUX_CONSOLE_UART_TX IOMUXC_UART4_TXD_UART4_TX, 0, UART_PAD_CTRL
 
+/* SPI configuration **********************************************************/
+/* SPI1 is defined by default;
+ * SPI2 requires (see mx8mn_spidev.c):
+ * - IOMUXC: see mx8mn_pinmux.h
+ *   - IOMUXC_SPI2_MISO
+ *   - IOMUXC_SPI2_MOSI
+ *   - IOMUXC_SPI2_SCLK
+ *   - IOMUXC_SPI2_CS: choose a pin that provides GPIO (SW control, ALT5)
+ * - GPIO: see mx8mn_gpio.h
+ *   - GPIO_SPI2_CS
+ */
+
+#define IOMUXC_SPI2_MISO IOMUXC_ECSPI2_MISO_ECSPI2_MISO, 0, SPI_PAD_CTRL
+#define IOMUXC_SPI2_MOSI IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI, 0, SPI_PAD_CTRL
+#define IOMUXC_SPI2_CLK IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK, 0, SPI_PAD_CTRL
+
+
 /* LED definitions **********************************************************/
 
 /* LED index values for use with board_userled() */
