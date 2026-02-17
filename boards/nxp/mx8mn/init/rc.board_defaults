@@ -12,7 +12,7 @@ param set MAV_SYS_ID 1
 # Use dataman from RAM
 param set SYS_DM_BACKEND 1
 # stop I2C external bus probing
-param set SENS_EXT_I2C_PRB 0
+# param set SENS_EXT_I2C_PRB 0
 ##########################################################
 
 # # Select parameter file location

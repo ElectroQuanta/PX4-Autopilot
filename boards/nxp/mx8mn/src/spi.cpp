@@ -49,8 +49,9 @@
 
 #include "arm_internal.h"
 #include "chip.h"
-#include <mx8mn_gpio.h>
 #include "board_config.h"
+// #include <mx8mn_gpio.h>
+// #include <mx8mn_iomuxc.h>
 #include <systemlib/px4_macros.h>
 
 #if defined(CONFIG_MX8MN_SPI1) || defined(CONFIG_MX8MN_SPI2) || defined(CONFIG_MX8MN_SPI3)
@@ -156,9 +157,9 @@ __EXPORT void board_spi_reset(int ms, int bus_mask)
 void mx8mn_spidev_initialize(void) {
 
     // /* 1. Mux the SPI2 Bus Pins (SCLK, MOSI, MISO) */
-    //     mx8mn_iomuxc_config(IOMUXC_SPI2_CLK);
-    //     mx8mn_iomuxc_config(IOMUXC_SPI2_MOSI);
-    //     mx8mn_iomuxc_config(IOMUXC_SPI2_MISO);
+        // mx8mn_iomuxc_config(IOMUXC_SPI2_CLK);
+        // mx8mn_iomuxc_config(IOMUXC_SPI2_MOSI);
+        // mx8mn_iomuxc_config(IOMUXC_SPI2_MISO);
 
 	board_spi_reset(10, 0xffff);
 

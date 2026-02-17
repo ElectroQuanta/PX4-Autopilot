@@ -49,7 +49,7 @@ add_library(drivers_board
 
 target_link_libraries(drivers_board
 	PRIVATE
-		# arch_io_pins
+		arch_io_pins
 		nuttx_arch # sdio
 		nuttx_drivers # sdio
 		# drivers__led # drv_led_start

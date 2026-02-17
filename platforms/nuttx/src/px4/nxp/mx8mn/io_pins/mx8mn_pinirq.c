@@ -36,27 +36,15 @@
 #include <arch/board/board.h>
 #include <errno.h>
 
-/* Include the i.MX8MN specific GPIO headers */
 #include <mx8mn_gpio.h> 
 
-/* Define the function prototype if not already in a header included here */
-extern "C" {
-    int mx8mn_gpiosetevent(uint32_t pinset, bool risingedge, bool fallingedge, 
-                           bool event, xcpt_t func, void *arg);
-    
-    /* These are usually provided by the NuttX architecture layer (arch/arm/src/mx8mn/...) */
-    int mx8mn_gpioirq_attach(uint32_t pinset, xcpt_t func, void *arg);
-    void mx8mn_gpioirq_enable(uint32_t pinset);
-    void mx8mn_gpioirq_disable(uint32_t pinset);
-}
-
-/****************************************************************************
+/**************************************************************************
  * Name: mx8mn_gpiosetevent
  *
  * Description:
  * Sets/clears GPIO based event and interrupt triggers for i.MX8MN.
  *
- ****************************************************************************/
+ *************************************************************************/
 int mx8mn_gpiosetevent(uint32_t pinset, bool risingedge, bool fallingedge,
                        bool event, xcpt_t func, void *arg)
 {
@@ -65,9 +53,9 @@ int mx8mn_gpiosetevent(uint32_t pinset, bool risingedge, bool fallingedge,
     /* 1. Disable Interrupts / Detach Logic */
     if (func == NULL) {
         /* Disable the interrupt on this pin */
-        mx8mn_gpioirq_disable(pinset);
+        mx8mn_gpio_irq_disable(pinset);
         /* Detach the callback (pass NULL) */
-        ret = mx8mn_gpioirq_attach(pinset, NULL, NULL);
+        ret = mx8mn_gpio_irq_attach(pinset, NULL, NULL);
         return ret;
     }
 
@@ -101,13 +89,13 @@ int mx8mn_gpiosetevent(uint32_t pinset, bool risingedge, bool fallingedge,
     }
 
     /* 4. Attach the Callback */
-    ret = mx8mn_gpioirq_attach(pinset, func, arg);
+    ret = mx8mn_gpio_irq_attach(pinset, func, arg);
     if (ret < 0) {
         return ret;
     }
 
     /* 5. Enable the Interrupt (IMR Register) */
-    mx8mn_gpioirq_enable(pinset);
+    mx8mn_gpio_irq_enable(pinset);
 
     return OK;
 }

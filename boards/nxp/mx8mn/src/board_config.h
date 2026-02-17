@@ -295,11 +295,28 @@ __BEGIN_DECLS
 int mx8mn_i2cdev_initialize(void);
 
 
+/****************************************************************************
+ * Name: mx8mn_iomuxc_set_pin_config
+ *
+ * Description:
+ *   Configure the IOMUXC pin configuration.
+ *   The first five parameters can be filled with the pin function ID macros.
+ *
+ ****************************************************************************/
+
+/* void mx8mn_iomuxc_config(uint32_t mux_register, */
+/*                          uint32_t mux_mode, */
+/*                          uint32_t input_register, */
+/*                          uint32_t input_daisy, */
+/*                          uint32_t config_register, */
+/*                          uint32_t sion, */
+/*                          uint32_t config); */
+
 /************************************************************************************
  * Name: mx8mn_spidev_initialize
  *
  * Description:
- *   Called to configure SPI chip select GPIO pins for the NXP MX8MN-E board.
+ *   Called to configure SPI chip select GPIO pins for the NXP MX8MN board.
  *
  ************************************************************************************/
 

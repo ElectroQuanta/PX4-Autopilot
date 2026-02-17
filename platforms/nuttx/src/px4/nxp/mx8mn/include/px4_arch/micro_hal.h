@@ -46,12 +46,6 @@ __BEGIN_DECLS
 #include <nuttx/spi/spi_transfer.h> // For SPI commands to work too
 #endif
 
-/* For minimal bring-up:
- * - we tell PX4 there is 1 dummy I2C bus entry
- * - 0 SPI buses
- * You can refine these later once you actually hook up I2C/SPI.
- */
-
 #include <chip.h>
 #include <mx8mn_i2c.h>
 #include <mx8mn_gpio.h>
@@ -91,10 +85,30 @@ __EXPORT void px4_cpu_mfguid_get(uint32_t *mfguid_words);
 #define px4_spibus_initialize(bus_num)  mx8mn_spibus_initialize(bus_num)
 
 
-/* #define px4_arch_configgpio(pinset)             mx8mn_gpio_config(pinset) */
-/* #define px4_arch_unconfiggpio(pinset) */
-/* #define px4_arch_gpioread(pinset)               mx8mn_gpio_read(pinset) */
-/* #define px4_arch_gpiowrite(pinset, value) mx8mn_gpio_write(pinset, value) */
+#define px4_arch_configgpio(pinset)             mx8mn_gpio_config(pinset)
+#define px4_arch_unconfiggpio(pinset)
+#define px4_arch_gpioread(pinset)               mx8mn_gpio_read(pinset)
+#define px4_arch_gpiowrite(pinset, value) mx8mn_gpio_write(pinset, value)
+
+/* Use static inline to allow the compiler to optimize out the function call 
+   while maintaining type safety and avoiding "redefinition" errors. */
+
+/* 1. Define the actual functions as static inlines for type safety */
+/* static inline void px4_arch_configgpio(uint32_t pinset) { */
+/*     (void)mx8mn_gpio_config((gpio_pinset_t)pinset); */
+/* } */
+
+/* static inline void px4_arch_gpiowrite(uint32_t pinset, bool value) { */
+/*     (void)mx8mn_gpio_write((gpio_pinset_t)pinset, value); */
+/* } */
+
+/* static inline bool px4_arch_gpioread(uint32_t pinset) { */
+/*     return mx8mn_gpio_read((gpio_pinset_t)pinset); */
+/* } */
+
+/* static inline void px4_arch_unconfiggpio(uint32_t pinset) { */
+/*     /\* Nothing required for i.MX8MN *\/ */
+/* } */
 
 /* Mask to clear Mode, Value, and Interrupt bits (31, 30, 29, 27, 26, 25) */
 #define _GPIO_CFG_MASK                                                         \
@@ -124,11 +138,10 @@ __EXPORT void px4_cpu_mfguid_get(uint32_t *mfguid_words);
 /* ADD GPIO Set Event for interrupt handling at PX4 Level
  * - requires IO pins
  */
-/* /\* kinetis_gpiosetevent is added at PX4 level *\/ */
-/* int kinetis_gpiosetevent(uint32_t pinset, bool risingedge, bool fallingedge, bool event, xcpt_t func, void *arg); */
+/* mx8mn_gpiosetevent is added at PX4 level */
+int mx8mn_gpiosetevent(uint32_t pinset, bool risingedge, bool fallingedge, bool event, xcpt_t func, void *arg);
 
-/* #define px4_arch_gpiosetevent(pinset,r,f,e,fp,a)  kinetis_gpiosetevent(pinset,r,f,e,fp,a) */
+#define px4_arch_gpiosetevent(pinset,r,f,e,fp,a)  mx8mn_gpiosetevent(pinset,r,f,e,fp,a)
 /** =================================================== */
 
 __END_DECLS
-

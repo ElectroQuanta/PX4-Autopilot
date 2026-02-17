@@ -40,15 +40,15 @@
 
 #include <px4_platform_common/px4_config.h>
 
-#if defined(CONFIG_ARCH_BOARD_NXP_MX8MN)
-/* Minimal stub for bring-up on mx8mn:
- * px4_gpio_init() will call this, but we don't touch real hardware yet.
- */
-void px4_arch_configgpio(uint32_t cfgset)
-{
-	(void)cfgset;
-}
-#endif
+/* #if defined(CONFIG_ARCH_BOARD_NXP_MX8MN) */
+/* /\* Minimal stub for bring-up on mx8mn: */
+/*  * px4_gpio_init() will call this, but we don't touch real hardware yet. */
+/*  *\/ */
+/* void px4_arch_configgpio(uint32_t cfgset) */
+/* { */
+/* 	(void)cfgset; */
+/* } */
+/* #endif */
 
 /************************************************************************************
  * Name: px4_gpio_init
