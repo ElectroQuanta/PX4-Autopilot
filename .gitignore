@@ -116,5 +116,8 @@ keys/
 *.bkp
 *_bkp/
 
-# Debug
+# Extra
 debug/
+deploy/
+docs-private/
+*.md
