@@ -59,6 +59,35 @@
 #define IOMUXC_SPI2_MOSI IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI, 0, SPI_PAD_CTRL
 #define IOMUXC_SPI2_CLK IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK, 0, SPI_PAD_CTRL
 
+/* PWM Pin Configuration ****************************************************/
+/* PWM outputs for motor control (ESC). These can be overridden by defining
+ * them before including this file, allowing board variants to use different
+ * pins without modifying the driver code.
+ *
+ * Default configuration uses SPDIF and SAI3 pins, leaving GPIO1 free for
+ * expansion. To use GPIO1 pins instead, define these before including board.h:
+ *
+ *   #define BOARD_PWM1_PIN  IOMUXC_GPIO1_IO00_PWM1_OUT
+ *   #define BOARD_PWM2_PIN  IOMUXC_GPIO1_IO01_PWM2_OUT
+ *   #define BOARD_PWM3_PIN  IOMUXC_GPIO1_IO02_PWM3_OUT
+ *   #define BOARD_PWM4_PIN  IOMUXC_GPIO1_IO03_PWM4_OUT
+ */
+
+#ifndef BOARD_PWM1_PIN
+#  define BOARD_PWM1_PIN  IOMUXC_SPDIF_EXT_CLK_PWM1_OUT
+#endif
+
+#ifndef BOARD_PWM2_PIN
+#  define BOARD_PWM2_PIN  IOMUXC_SPDIF_RX_PWM2_OUT
+#endif
+
+#ifndef BOARD_PWM3_PIN
+#  define BOARD_PWM3_PIN  IOMUXC_SPDIF_TX_PWM3_OUT
+#endif
+
+#ifndef BOARD_PWM4_PIN
+#  define BOARD_PWM4_PIN  IOMUXC_SAI3_MCLK_PWM4_OUT
+#endif
 
 /* LED definitions **********************************************************/
 

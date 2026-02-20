@@ -143,7 +143,7 @@ static inline int validate_timer_index(unsigned timer)
  * Name: pwm_timer_init
  *
  * Description:
- *   Initialize a PWM timer module
+ *   Initialize a PWM timer module with pin configuration from board
  *
  ****************************************************************************/
 
@@ -153,9 +153,19 @@ static int pwm_timer_init(unsigned timer)
 		return -EINVAL;
 	}
 
-	/* Initialize the NuttX PWM driver */
+	/* Get pin configuration from timer_io_channels.
+	 * This allows the board-level configuration (timer_config.cpp)
+	 * to specify which pins to use via board.h defines.
+	 */
 
-	return mx8mn_pwm_init(timer + 1);  /* PWM IDs are 1-based */
+	uint32_t pin = timer_io_channels[timer].gpio_out;
+
+	/* Initialize the NuttX PWM driver with the specified pin.
+	 * Pass 0 to use the default pin from board.h, or pass a specific
+	 * IOMUXC constant to override at runtime.
+	 */
+
+	return mx8mn_pwm_init_with_pin(timer + 1, pin);  /* PWM IDs are 1-based */
 }
 
 /****************************************************************************

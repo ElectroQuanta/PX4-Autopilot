@@ -40,7 +40,7 @@ add_library(drivers_board
 	# led.c
 	# # sdhc.c
 	spi.cpp
-	# timer_config.cpp
+	timer_config.cpp
 	# usb.c
 	###### Others (initial bring-up) ######
 	px4_stubs.cpp
