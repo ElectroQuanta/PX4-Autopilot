@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2019 PX4 Development Team. All rights reserved.
+ *   Copyright (C) 2024 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,7 +30,153 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************/
+
 #pragma once
 
+#include <px4_arch/io_timer.h>
+#include <px4_arch/hw_description.h>
+#include <px4_platform_common/constexpr_util.h>
+#include <px4_platform_common/px4_config.h>
+#include <px4_platform/io_timer_init.h>
 
-#include "../../../kinetis/include/px4_arch/io_timer_hw_description.h"
+#include "hardware/mx8mn_memorymap.h"
+#include "hardware/mx8mn_ccm.h"
+#include "hardware/mx8mn_pinmux.h"
+
+/****************************************************************************
+ * Helper Functions for Board-Specific Timer Configuration
+ ****************************************************************************/
+
+/**
+ * Initialize timer_io_channels_t structure from Timer and GPIO enums
+ *
+ * For i.MX8MN, each PWM module has one output channel.
+ * The pin muxing is already defined in mx8mn_pinmux.h as IOMUXC_* constants.
+ */
+static inline constexpr timer_io_channels_t initIOTimerChannel(
+	const io_timers_t io_timers_conf[MAX_IO_TIMERS],
+	Timer::TimerChannel timer_channel,
+	GPIO::GPIOPin pin)
+{
+	timer_io_channels_t ret{};
+
+	// Determine IOMUX configuration based on timer and pin
+	// The gpio_out value should be the IOMUXC_* constant from mx8mn_pinmux.h
+
+	uint32_t iomux_config = 0;
+
+	// Map timer and pin to IOMUX configuration
+	// PWM1: SPDIF_EXT_CLK
+	// PWM2: SPDIF_RX
+	// PWM3: SPDIF_TX
+	// PWM4: SAI3_MCLK
+
+	switch (timer_channel.timer) {
+	case Timer::PWM1:
+		// SPDIF_EXT_CLK as PWM1_OUT
+		iomux_config = IOMUXC_SPDIF_EXT_CLK_PWM1_OUT;
+		break;
+
+	case Timer::PWM2:
+		// SPDIF_RX as PWM2_OUT
+		iomux_config = IOMUXC_SPDIF_RX_PWM2_OUT;
+		break;
+
+	case Timer::PWM3:
+		// SPDIF_TX as PWM3_OUT
+		iomux_config = IOMUXC_SPDIF_TX_PWM3_OUT;
+		break;
+
+	case Timer::PWM4:
+		// SAI3_MCLK as PWM4_OUT
+		iomux_config = IOMUXC_SAI3_MCLK_PWM4_OUT;
+		break;
+
+	default:
+		break;
+	}
+
+	ret.gpio_out = iomux_config;
+	ret.gpio_in = 0;  // PWM input not supported yet
+
+	// i.MX8MN PWM modules have only one channel each
+	ret.timer_channel = 1;
+
+	// Find timer index in io_timers_conf array
+	ret.timer_index = 0xff;
+	const uint32_t timer_base = timerBaseRegister(timer_channel.timer);
+
+	for (int i = 0; i < MAX_IO_TIMERS; ++i) {
+		if (io_timers_conf[i].base == timer_base) {
+			ret.timer_index = i;
+			break;
+		}
+	}
+
+	constexpr_assert(ret.timer_index != 0xff, "Timer not found");
+
+	return ret;
+}
+
+/**
+ * Initialize io_timers_t structure from Timer enum
+ *
+ * Sets up base address, clock gate, and IRQ for each PWM module.
+ */
+static inline constexpr io_timers_t initIOTimer(Timer::Timer timer)
+{
+	bool nuttx_config_timer_enabled = false;
+	io_timers_t ret{};
+
+	switch (timer) {
+	case Timer::PWM1:
+		ret.base = MX8M_PWM1;
+		ret.clock_register = CCM_PWM1_CLK_GATE;
+		ret.clock_bit = 0;  // Unused for i.MX8MN
+		ret.vectorno = 0;   // IRQ not used yet
+#ifdef CONFIG_MX8MN_PWM1
+		nuttx_config_timer_enabled = true;
+#endif
+		break;
+
+	case Timer::PWM2:
+		ret.base = MX8M_PWM2;
+		ret.clock_register = CCM_PWM2_CLK_GATE;
+		ret.clock_bit = 0;
+		ret.vectorno = 0;
+#ifdef CONFIG_MX8MN_PWM2
+		nuttx_config_timer_enabled = true;
+#endif
+		break;
+
+	case Timer::PWM3:
+		ret.base = MX8M_PWM3;
+		ret.clock_register = CCM_PWM3_CLK_GATE;
+		ret.clock_bit = 0;
+		ret.vectorno = 0;
+#ifdef CONFIG_MX8MN_PWM3
+		nuttx_config_timer_enabled = true;
+#endif
+		break;
+
+	case Timer::PWM4:
+		ret.base = MX8M_PWM4;
+		ret.clock_register = CCM_PWM4_CLK_GATE;
+		ret.clock_bit = 0;
+		ret.vectorno = 0;
+#ifdef CONFIG_MX8MN_PWM4
+		nuttx_config_timer_enabled = true;
+#endif
+		break;
+
+	default:
+		break;
+	}
+
+	// This is not strictly required, but for consistency let's make sure
+	// NuttX PWM timers are disabled when used by PX4
+	constexpr_assert(!nuttx_config_timer_enabled,
+			 "IO Timer requires NuttX PWM config to be disabled (CONFIG_MX8MN_PWMx)");
+
+	return ret;
+}

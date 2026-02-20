@@ -33,55 +33,46 @@
 #pragma once
 
 
-/* #include <kinetis.h> */
-/* #include "hardware/kinetis_sim.h" */
-/* #include "hardware/kinetis_ftm.h" */
 #include "mx8mn_gpio.h"
+#include "hardware/mx8mn_memorymap.h"
 
 #include <px4_platform_common/constexpr_util.h>
 
-/* /\* */
-/*  * Timers */
-/*  *\/ */
+/*
+ * Timers
+ */
 
-/* namespace Timer */
-/* { */
-/* enum Timer { */
-/* 	FTM0 = 0, */
-/* 	FTM1, */
-/* 	FTM2, */
-/* 	FTM3, */
-/* }; */
-/* enum Channel { */
-/* 	Channel0 = 0, */
-/* 	Channel1, */
-/* 	Channel2, */
-/* 	Channel3, */
-/* 	Channel4, */
-/* 	Channel5, */
-/* 	Channel6, */
-/* 	Channel7, */
-/* }; */
-/* struct TimerChannel { */
-/* 	Timer timer; */
-/* 	Channel channel; */
-/* }; */
-/* } */
+namespace Timer
+{
+enum Timer {
+	PWM1 = 0,
+	PWM2,
+	PWM3,
+	PWM4,
+};
+enum Channel {
+	Channel1 = 0,  // i.MX8MN PWM has only one channel per module
+};
+struct TimerChannel {
+	Timer timer;
+	Channel channel;
+};
+}
 
-/* static inline constexpr uint32_t timerBaseRegister(Timer::Timer timer) */
-/* { */
-/* 	switch (timer) { */
-/* 	case Timer::FTM0: return KINETIS_FTM0_BASE; */
+static inline constexpr uint32_t timerBaseRegister(Timer::Timer timer)
+{
+	switch (timer) {
+	case Timer::PWM1: return MX8M_PWM1;
 
-/* 	case Timer::FTM1: return KINETIS_FTM1_BASE; */
+	case Timer::PWM2: return MX8M_PWM2;
 
-/* 	case Timer::FTM2: return KINETIS_FTM2_BASE; */
+	case Timer::PWM3: return MX8M_PWM3;
 
-/* 	case Timer::FTM3: return KINETIS_FTM3_BASE; */
-/* 	} */
+	case Timer::PWM4: return MX8M_PWM4;
+	}
 
-/* 	return 0; */
-/* } */
+	return 0;
+}
 
 /*
  * GPIO

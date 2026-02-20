@@ -122,6 +122,20 @@ __END_DECLS
 #define GPIO_VDD_3V3_SENSORS_EN (GPIO_PORT3 | GPIO_PIN19 | GPIO_OUTPUT | GPIO_OUTPUT_ZERO)
 #define VDD_3V3_SENSORS_EN(v) mx8mn_gpio_write(GPIO_VDD_3V3_SENSORS_EN, (v))
 
+/* Timer I/O PWM Configuration
+ *
+ * 4 PWM outputs are configured using the i.MX8MN PWM modules:
+ *   PWM1: SPDIF_EXT_CLK (Motor 1)
+ *   PWM2: SPDIF_RX      (Motor 2)
+ *   PWM3: SPDIF_TX      (Motor 3)
+ *   PWM4: SAI3_MCLK     (Motor 4)
+ */
+#define DIRECT_PWM_OUTPUT_CHANNELS  4
+
+/* Board-specific PWM frequency (Hz) */
+#define BOARD_PWM_FREQ              400     /* 400 Hz for standard ESC */
+#define BOARD_ONESHOT_FREQ          8000000 /* 8 MHz for OneShot125 */
+
 /* SPI configuration **********************************************************/
 /* SPI1 is defined by default;
  * SPI2 requires (see mx8mn_spidev.c):
