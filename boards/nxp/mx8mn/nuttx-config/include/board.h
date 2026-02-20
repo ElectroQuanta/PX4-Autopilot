@@ -104,6 +104,13 @@
 #  define BOARD_PWM4_PIN  PWM_PIN_SAI3_MCLK
 #endif
 
+/* GPT (General Purpose Timer) Clock Configuration **************************/
+
+/* GPT clock frequency - 24 MHz crystal oscillator
+ * Used by High-Resolution Timer (HRT) for 1 MHz time base
+ */
+#define BOARD_GPT_FREQUENCY  24000000  /* 24 MHz */
+
 /* LED definitions **********************************************************/
 
 /* LED index values for use with board_userled() */

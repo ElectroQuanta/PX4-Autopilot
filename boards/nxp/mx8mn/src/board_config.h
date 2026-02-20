@@ -127,6 +127,27 @@ __END_DECLS
 #define BOARD_PWM_FREQ              400     /* 400 Hz for standard ESC */
 #define BOARD_ONESHOT_FREQ          8000000 /* 8 MHz for OneShot125 */
 
+/* High-Resolution Timer (HRT) Configuration **********************************/
+
+/* HRT uses GPT1 (General Purpose Timer 1) for 1 MHz time base
+ *
+ * Timer:   GPT1 (32-bit free-running counter)
+ * Clock:   24 MHz crystal oscillator (OSC_24M_REF_CLK)
+ * Freq:    1 MHz (24 MHz / 24 prescaler)
+ * Channel: Output Compare Channel 1 for HRT callbacks
+ */
+#define HRT_TIMER           1    /* Use GPT1 */
+#define HRT_TIMER_CHANNEL   1    /* Use Output Compare Channel 1 */
+
+/* Optional: Uncomment to enable PPM input capture on channel 2
+ * #define HRT_PPM_CHANNEL  2
+ */
+
+/* GPT clock frequency - 24 MHz crystal oscillator
+ * Used by High-Resolution Timer (HRT) for 1 MHz time base
+ */
+#define BOARD_GPT_FREQUENCY  24000000  /* 24 MHz */
+
 /* SPI configuration **********************************************************/
 /* SPI1 is defined by default;
  * SPI2 requires (see mx8mn_spidev.c):
