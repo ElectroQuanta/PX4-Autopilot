@@ -60,33 +60,48 @@
 #define IOMUXC_SPI2_CLK IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK, 0, SPI_PAD_CTRL
 
 /* PWM Pin Configuration ****************************************************/
-/* PWM outputs for motor control (ESC). These can be overridden by defining
- * them before including this file, allowing board variants to use different
- * pins without modifying the driver code.
+
+/* PWM Pin Selection Enums
+ * Use these identifiers to select PWM output pins at board level.
+ * The driver will map these to the appropriate IOMUXC configurations.
+ */
+
+#define PWM_PIN_SPDIF_EXT_CLK    1
+#define PWM_PIN_SPDIF_RX         2
+#define PWM_PIN_SPDIF_TX         3
+#define PWM_PIN_SAI3_MCLK        4
+#define PWM_PIN_GPIO1_IO00       5
+#define PWM_PIN_GPIO1_IO01       6
+#define PWM_PIN_GPIO1_IO02       7
+#define PWM_PIN_GPIO1_IO03       8
+
+/* Board PWM Pin Configuration
+ * These can be overridden by defining them before including this file,
+ * allowing board variants to use different pins without modifying driver code.
  *
  * Default configuration uses SPDIF and SAI3 pins, leaving GPIO1 free for
  * expansion. To use GPIO1 pins instead, define these before including board.h:
  *
- *   #define BOARD_PWM1_PIN  IOMUXC_GPIO1_IO00_PWM1_OUT
- *   #define BOARD_PWM2_PIN  IOMUXC_GPIO1_IO01_PWM2_OUT
- *   #define BOARD_PWM3_PIN  IOMUXC_GPIO1_IO02_PWM3_OUT
- *   #define BOARD_PWM4_PIN  IOMUXC_GPIO1_IO03_PWM4_OUT
+ *   #define BOARD_PWM1_PIN  PWM_PIN_GPIO1_IO00
+ *   #define BOARD_PWM2_PIN  PWM_PIN_GPIO1_IO01
+ *   #define BOARD_PWM3_PIN  PWM_PIN_GPIO1_IO02
+ *   #define BOARD_PWM4_PIN  PWM_PIN_GPIO1_IO03
  */
 
 #ifndef BOARD_PWM1_PIN
-#  define BOARD_PWM1_PIN  IOMUXC_SPDIF_EXT_CLK_PWM1_OUT
+#  define BOARD_PWM1_PIN  PWM_PIN_SPDIF_EXT_CLK
 #endif
 
 #ifndef BOARD_PWM2_PIN
-#  define BOARD_PWM2_PIN  IOMUXC_SPDIF_RX_PWM2_OUT
+#  define BOARD_PWM2_PIN  PWM_PIN_SPDIF_RX
 #endif
 
 #ifndef BOARD_PWM3_PIN
-#  define BOARD_PWM3_PIN  IOMUXC_SPDIF_TX_PWM3_OUT
+#  define BOARD_PWM3_PIN  PWM_PIN_SPDIF_TX
 #endif
 
 #ifndef BOARD_PWM4_PIN
-#  define BOARD_PWM4_PIN  IOMUXC_SAI3_MCLK_PWM4_OUT
+#  define BOARD_PWM4_PIN  PWM_PIN_SAI3_MCLK
 #endif
 
 /* LED definitions **********************************************************/

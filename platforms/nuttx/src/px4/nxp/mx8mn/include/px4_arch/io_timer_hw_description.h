@@ -62,49 +62,52 @@ static inline constexpr timer_io_channels_t initIOTimerChannel(
 {
 	timer_io_channels_t ret{};
 
-	/* Determine IOMUX configuration from board-level defines.
+	/* Get pin identifier from board-level defines.
+	 * Pin values are enum identifiers (PWM_PIN_*) that get mapped
+	 * to IOMUXC configurations in the NuttX driver layer.
+	 *
 	 * This allows board variants to override pin mappings via board.h
 	 * without modifying this code.
 	 *
 	 * Default pins (defined in board.h):
-	 *   PWM1: BOARD_PWM1_PIN (default: SPDIF_EXT_CLK)
-	 *   PWM2: BOARD_PWM2_PIN (default: SPDIF_RX)
-	 *   PWM3: BOARD_PWM3_PIN (default: SPDIF_TX)
-	 *   PWM4: BOARD_PWM4_PIN (default: SAI3_MCLK)
+	 *   PWM1: BOARD_PWM1_PIN (default: PWM_PIN_SPDIF_EXT_CLK)
+	 *   PWM2: BOARD_PWM2_PIN (default: PWM_PIN_SPDIF_RX)
+	 *   PWM3: BOARD_PWM3_PIN (default: PWM_PIN_SPDIF_TX)
+	 *   PWM4: BOARD_PWM4_PIN (default: PWM_PIN_SAI3_MCLK)
 	 */
 
-	uint32_t iomux_config = 0;
+	uint32_t pin_id = 0;
 
 	switch (timer_channel.timer) {
 	case Timer::PWM1:
 #ifdef BOARD_PWM1_PIN
-		iomux_config = BOARD_PWM1_PIN;
+		pin_id = BOARD_PWM1_PIN;
 #else
-		iomux_config = IOMUXC_SPDIF_EXT_CLK_PWM1_OUT;
+		pin_id = 1;  /* PWM_PIN_SPDIF_EXT_CLK */
 #endif
 		break;
 
 	case Timer::PWM2:
 #ifdef BOARD_PWM2_PIN
-		iomux_config = BOARD_PWM2_PIN;
+		pin_id = BOARD_PWM2_PIN;
 #else
-		iomux_config = IOMUXC_SPDIF_RX_PWM2_OUT;
+		pin_id = 2;  /* PWM_PIN_SPDIF_RX */
 #endif
 		break;
 
 	case Timer::PWM3:
 #ifdef BOARD_PWM3_PIN
-		iomux_config = BOARD_PWM3_PIN;
+		pin_id = BOARD_PWM3_PIN;
 #else
-		iomux_config = IOMUXC_SPDIF_TX_PWM3_OUT;
+		pin_id = 3;  /* PWM_PIN_SPDIF_TX */
 #endif
 		break;
 
 	case Timer::PWM4:
 #ifdef BOARD_PWM4_PIN
-		iomux_config = BOARD_PWM4_PIN;
+		pin_id = BOARD_PWM4_PIN;
 #else
-		iomux_config = IOMUXC_SAI3_MCLK_PWM4_OUT;
+		pin_id = 4;  /* PWM_PIN_SAI3_MCLK */
 #endif
 		break;
 
@@ -112,7 +115,7 @@ static inline constexpr timer_io_channels_t initIOTimerChannel(
 		break;
 	}
 
-	ret.gpio_out = iomux_config;
+	ret.gpio_out = pin_id;
 	ret.gpio_in = 0;  // PWM input not supported yet
 
 	// i.MX8MN PWM modules have only one channel each
