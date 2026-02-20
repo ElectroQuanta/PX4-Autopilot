@@ -69,15 +69,6 @@ __END_DECLS
 
 
 /** =========================== 12C ============================ */
-/* I2C Pad Control:
- * ODE (Bit 5) = 1 : Open Drain Enable
- * PUE (Bit 6) = 1 : Pull Up Enable
- * PE  (Bit 8) = 1 : Pull Select Enable
- * HYS (Bit 7) = 1 : Schmitt Trigger Enable
- * DSE (Bits 1-2) = 3 : Max Drive Strength (x6)
- */
-#define I2C_PAD_CTRL  (PAD_CTL_ODE | PAD_CTL_PUE | PAD_CTL_PE | PAD_CTL_HYS | PAD_CTL_DSE6)
-
 /* * I2C Pin Definitions
  * Signature: mux_reg, mux_mode, input_reg, input_daisy, config_reg, sion,
  * config

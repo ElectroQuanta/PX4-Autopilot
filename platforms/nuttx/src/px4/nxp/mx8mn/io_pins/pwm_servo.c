@@ -34,10 +34,9 @@
 /*
  * @file pwm_servo.c
  *
- * Servo driver supporting PWM servos connected to STM32 timer blocks.
+ * Servo driver supporting PWM servos connected to i.MX8MN PWM modules.
  *
- * Works with any of the 'generic' or 'advanced' STM32 timers that
- * have output pins, does not require an interrupt.
+ * Works with the i.MX8MN PWM hardware blocks via the io_timer abstraction.
  */
 
 #include <px4_platform_common/px4_config.h>
@@ -59,8 +58,6 @@
 #include <drivers/drv_pwm_output.h>
 
 #include <px4_arch/io_timer.h>
-
-#include <kinetis.h>
 
 int up_pwm_servo_set(unsigned channel, uint16_t value)
 {

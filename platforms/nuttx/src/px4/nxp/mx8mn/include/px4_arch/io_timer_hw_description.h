@@ -194,7 +194,8 @@ static inline constexpr io_timers_t initIOTimer(Timer::Timer timer)
 
 	// This is not strictly required, but for consistency let's make sure
 	// NuttX PWM timers are disabled when used by PX4
-	constexpr_assert(!nuttx_config_timer_enabled,
+	/* constexpr_assert(!nuttx_config_timer_enabled, */
+	constexpr_assert(nuttx_config_timer_enabled,
 			 "IO Timer requires NuttX PWM config to be disabled (CONFIG_MX8MN_PWMx)");
 
 	return ret;

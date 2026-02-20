@@ -32,9 +32,11 @@
 ############################################################################
 
 px4_add_library(arch_io_pins
-	# io_timer.c
-	# pwm_servo.c
+	io_timer.c
+	pwm_servo.c
 	# pwm_trigger.c
 	# input_capture.c
 	mx8mn_pinirq.c
 )
+
+target_link_libraries(arch_io_pins PRIVATE nuttx_arch)
