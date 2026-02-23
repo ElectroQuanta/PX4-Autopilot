@@ -109,9 +109,12 @@ __EXPORT void mx8mn_board_initialize(void)
 {
     board_on_reset(-1);
 
-    /* For minimal bring-up we do NOT:
+    /* Configure HRT (High-Resolution Timer) - GPT1 at 1 MHz */
+    mx8mn_timer_initialize();
+
+    /* For minimal bring-up we do NOT yet:
+     *  - configure LEDs
      *  - configure GPIOs
-     *  - configure timers
      *  - configure sensors, SD, etc.
      */
 
@@ -120,8 +123,6 @@ __EXPORT void mx8mn_board_initialize(void)
 
     /* const uint32_t gpio[] = PX4_GPIO_INIT_LIST; */
     /* px4_gpio_init(gpio, arraySize(gpio)); */
-
-    /* fmuk66_timer_initialize(); */
 
     /* /\* Power on Spektrum *\/ */
 

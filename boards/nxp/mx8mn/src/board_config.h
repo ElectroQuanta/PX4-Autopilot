@@ -358,6 +358,16 @@ void mx8mn_spidev_initialize(void);
 
 int  mx8mn_spi_bus_initialize(void);
 
+/************************************************************************************
+ * Name: mx8mn_timer_initialize
+ *
+ * Description:
+ *   Called to initialize the HRT (High-Resolution Timer) subsystem.
+ *   This configures GPT1 for 1 MHz operation used by PX4's timing system.
+ *
+ ************************************************************************************/
+void mx8mn_timer_initialize(void);
+
 /****************************************************************************************************
  * Name: board_spi_reset board_peripheral_reset
  *

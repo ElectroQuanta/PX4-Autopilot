@@ -90,3 +90,21 @@ const struct io_timers_t led_pwm_timers[MAX_LED_TIMERS] = {
 
 const struct timer_io_channels_t led_pwm_channels[MAX_TIMER_LED_CHANNELS] = {
 };
+
+/****************************************************************************
+ * Name: mx8mn_timer_initialize
+ *
+ * Description:
+ *   Initialize the HRT (High-Resolution Timer) subsystem.
+ *   This function is called during board initialization to set up GPT1
+ *   for 1 MHz operation as PX4's time base.
+ *
+ ****************************************************************************/
+
+#include <drivers/drv_hrt.h>
+
+void mx8mn_timer_initialize(void)
+{
+	/* Initialize the HRT driver - this configures GPT1 */
+	hrt_init();
+}
