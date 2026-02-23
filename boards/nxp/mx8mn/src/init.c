@@ -109,8 +109,10 @@ __EXPORT void mx8mn_board_initialize(void)
 {
     board_on_reset(-1);
 
-    /* Configure HRT (High-Resolution Timer) - GPT1 at 1 MHz */
-    mx8mn_timer_initialize();
+    /* Configure HRT (High-Resolution Timer) - GPT1 at 1 MHz
+	 * (called by px4_platform_init() )
+	 */
+    /* mx8mn_timer_initialize(); */
 
     /* For minimal bring-up we do NOT yet:
      *  - configure LEDs

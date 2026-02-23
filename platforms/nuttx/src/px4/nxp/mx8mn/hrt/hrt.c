@@ -297,37 +297,53 @@ static void hrt_tim_init(void)
 	/* Enable GPT1 clock gate */
 	mx8mn_ccm_gate_clock(CCM_GPT1_CLK_GATE, CLK_RUN_NEEDED);
 
-	/* Claim our interrupt vector */
-	irq_attach(HRT_TIMER_VECTOR, hrt_tim_isr, NULL);
+	/* Software reset of GPT */
+	rCR = GPT_CR_SWR;
+	while (rCR & GPT_CR_SWR) {
+		/* Wait for reset to complete */
+	}
 
-	/* Disable and configure the timer */
+	/* Disable timer completely */
 	rCR = 0;
-
-	/* Configure GPT:
-	 *   - Output compare modes disabled (OM1/2/3 = 000b)
-	 *   - Input capture mode (IM_BOTH) for optional PPM
-	 *   - Free-run mode (FRR = 1) - counter wraps at 0xFFFFFFFF
-	 *   - 24 MHz crystal clock source (CLKSRC = 101b)
-	 *   - Enable mode (ENMOD = 1) - counter resets on enable
-	 */
-	rCR = GPT_CR_OM1_DIS | GPT_CR_OM2_DIS | GPT_CR_OM3_DIS |
-	      GPT_CR_IM_BOTH | GPT_CR_FRR | GPT_CR_CLKSRC_IPG_24M | GPT_CR_ENMOD;
+	rIR = 0;  /* Disable all interrupts */
 
 	/* CLKSRC field is divided by [PRESCALER + 1]
 	 * 24 MHz / 24 = 1 MHz
 	 */
 	rPR = (HRT_TIMER_CLOCK / HRT_TIMER_FREQ) - 1;
 
-	/* Set an initial capture a little ways off */
-	rOCR_HRT  = 1000;
+	/* Clear any pending interrupts */
+	rSR = 0xFFFFFFFF;
 
-	/* Enable interrupts */
-	up_enable_irq(HRT_TIMER_VECTOR);
+	/* Configure GPT:
+	 *   - Output compare modes disabled (OM1/2/3 = 000b)
+	 *   - Input capture mode (IM_BOTH) for optional PPM
+	 *   - Free-run mode (FRR = 1) - counter wraps at 0xFFFFFFFF
+	 *   - Peripheral clock source from CCM (CLKSRC = 001b) - CCM configured for 24 MHz
+	 *   - Enable mode (ENMOD = 1) - counter resets on enable
+	 */
+	rCR = GPT_CR_OM1_DIS | GPT_CR_OM2_DIS | GPT_CR_OM3_DIS |
+	      GPT_CR_IM_BOTH | GPT_CR_FRR | GPT_CR_CLKSRC_IPG | GPT_CR_ENMOD;
 
+	/* Enable the timer (but not interrupts yet) */
+	rCR |= GPT_CR_EN;
+
+	/* Counter is working - now set up interrupts */
+
+	/* Set compare value safely ahead of current counter to avoid immediate interrupt */
+	rOCR_HRT = rCNT + 10000;  /* 10ms in the future */
+
+	/* Clear any pending interrupt flags again */
+	rSR = 0xFFFFFFFF;
+
+	/* Attach ISR */
+	irq_attach(HRT_TIMER_VECTOR, hrt_tim_isr, NULL);
+
+	/* Enable timer interrupts */
 	rIR = IFIE_PPM | OFIE_HRT;
 
-	/* Enable the timer */
-	rCR |= GPT_CR_EN;
+	/* Enable at NVIC level */
+	up_enable_irq(HRT_TIMER_VECTOR);
 }
 
 #ifdef HRT_PPM_CHANNEL
@@ -487,14 +503,12 @@ static int
 hrt_tim_isr(int irq, void *context, void *arg)
 {
 	/* grab the timer for latency tracking purposes */
-
 	latency_actual = rCNT;
 
 	/* copy interrupt status */
 	uint32_t status = rSR;
 
 	/* ack the interrupts we just read */
-
 	rSR = status;
 
 #ifdef HRT_PPM_CHANNEL
