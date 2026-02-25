@@ -51,7 +51,7 @@ __BEGIN_DECLS
 #include <mx8mn_gpio.h>
 #include <mx8mn_ecspi.h>
 
-#define PX4_NUMBER_I2C_BUSES   4
+#define PX4_NUMBER_I2C_BUSES   2
 #define PX4_NUMBER_SPI_BUSES 2
 
 #define GPIO_OUTPUT_SET             GPIO_OUTPUT_ONE

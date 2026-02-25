@@ -34,8 +34,8 @@
 #include <px4_arch/i2c_hw_description.h>
 
 constexpr px4_i2c_bus_t px4_i2c_buses[I2C_BUS_MAX_BUS_ITEMS] = {
-  initI2CBusExternal(PX4_BUS_NUMBER_TO_PX4(4)), // External connector
-  initI2CBusInternal(PX4_BUS_NUMBER_TO_PX4(3)), // Internal Sensors
+  initI2CBusInternal(PX4_BUS_NUMBER_TO_PX4(4)), // Internal power monitor
+  // initI2CBusInternal(PX4_BUS_NUMBER_TO_PX4(3)), // CSI camera (Linux)
   initI2CBusInternal(PX4_BUS_NUMBER_TO_PX4(2)), // Internal Sensors
-  initI2CBusInternal(PX4_BUS_NUMBER_TO_PX4(1)), // Internal sensors
+  // initI2CBusInternal(PX4_BUS_NUMBER_TO_PX4(1)), // PMIC
 };

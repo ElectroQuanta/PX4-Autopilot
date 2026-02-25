@@ -5,20 +5,49 @@
 
 echo ">> PX4 ROMFS rc.board_sensors running"
 
-ist8310 -I -b 1 -R 10 start
-ist8310 -X -b 4 -R 10 start
+# PM02D support (https://docs.px4.io/main/en/power_module/holybro_pm02d)
+param set SENS_EN_INA228 1
+if param compare SENS_EN_INA226 1
+then
+    # Start Digital power monitors
+    ina226 -I -b 4 -t 1 -k start
+fi
 
-# board_adc start
+if param compare SENS_EN_INA228 1
+then
+    # Start Digital power monitors
+    # -I -b 1: external bus 1
+    # -t 1: battery idx for calib
+    # -k: if initial probing fails, keep trying periodically
+    # -a: address (default: 69)
+    ina228 -I -b 4 -t 1 -k start
+fi
 
-# Internal Mag I2C bus roll 180, yaw 90
+# Test I2C magnetometers
+# -I -b 2: internal bus 2
+# -a: address (default: 14)
+# -R: rotation (default: 0)
+ist8310 -I -b 2 -R 10 start
+
+# Internal Mag I2C bus roll 180, yaw 90 (default address 16)
+# -I -b 2: internal bus 2
+# -a: address (default: 16)
 bmm150 -I -R 10 start
 
 # Onboard I2C baros
+# -I: internal I2C
+# -a: I2C address (default: 118)
 bmp280 -I start
 
-# # Internal SPI (accel + mag)
+# Internal SPI (accel + mag)
+# -s: internal SPI
+# -R: rotation (default: 0)
+# -A: accel
+# -G: gyro
 bmi088 -A -R 8 -s start
 bmi088 -G -R 8 -s start
 
 # # Internal SPI bus ICM-42688
+# -s: internal SPI
+# -R: rotation (default: 0)
 icm42688p -R 12 -s start
