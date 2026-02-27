@@ -105,44 +105,37 @@ void board_on_reset(int status)
  *
  * Returns 0 if USB VBUS is present, 1 otherwise.
  * For now, just report "not connected".
+ * - NO VBUS is available for now
  ****************************************************************************/
 
 int board_read_VBUS_state(void)
 {
-    /* TODO: hook to real GPIO/ADC later */
     return 1;
 }
 
 /****************************************************************************
- * Name: mx8mn_boardinitialize
+ * Name: mx8mn_board_initialize
  *
- * Called very early (before apps) by NuttX.
+ * Description:
+ *   All mx8mn architectures must provide the following entry point.
+ *   This entry point is called early in the initialization -- after all
+ *   memory has been configured and mapped but before any devices have
+ *   been initialized.
+ *
+ * Sequence:
+ *   1. reset the board to disarm ESC motors
+ *   2. Initialize the HRT (GPT1 @ 1MHz) - done by px4_platform_init
+ *   3. Configure LEDs (not available for now)
+ *   4. Initialize GPIOs pins, mainly for device enabling
+ *   5. Enable RC Spektrum (not supported)
  ****************************************************************************/
 
 __EXPORT void mx8mn_board_initialize(void)
 {
     board_on_reset(-1);
 
-    /* Configure HRT (High-Resolution Timer) - GPT1 at 1 MHz
-	 * (called by px4_platform_init() )
-	 */
-    /* mx8mn_timer_initialize(); */
-
-    /* For minimal bring-up we do NOT yet:
-     *  - configure LEDs
-     *  - configure GPIOs
-     *  - configure sensors, SD, etc.
-     */
-
-    /* /\* configure LEDs *\/ */
-    /* board_autoled_initialize(); */
-
     /* const uint32_t gpio[] = PX4_GPIO_INIT_LIST; */
     /* px4_gpio_init(gpio, arraySize(gpio)); */
-
-    /* /\* Power on Spektrum *\/ */
-
-    /* VDD_3V3_SPEKTRUM_POWER_EN(true); */
 }
 
 #include <nuttx/config.h>
