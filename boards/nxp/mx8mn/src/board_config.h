@@ -275,6 +275,11 @@ __END_DECLS
 /* #define PIN_SPI2_SIN     PIN_SPI2_SIN_1   /\* PTB23 SPI2_IN  *\/ */
 /** ============================================================ */
 
+
+/* This board provides the board_on_reset interface */
+
+#define BOARD_HAS_ON_RESET 1
+
 /* For minimal bring-up we do not configure any GPIOs yet.
  * px4_gpio_init() will simply not be called.
  */

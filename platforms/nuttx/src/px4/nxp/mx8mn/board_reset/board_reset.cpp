@@ -32,9 +32,9 @@
  *
  ****************************************************************************/
 
-/**
+  /**
  * @file board_reset.cpp
- * Implementation of kinetis based Board RESET API
+ * Implementation of mx8mn based Board RESET API
  */
 
 #include <px4_platform_common/px4_config.h>
@@ -44,45 +44,23 @@
 
 #ifdef CONFIG_BOARDCTL_RESET
 
-static int board_reset_enter_bootloader()
-{
-	uint32_t regvalue = 0xb007b007;
-	*((uint32_t *) KINETIS_VBATR_BASE) = regvalue;
-	return OK;
-}
-
-/****************************************************************************
- * Name: board_reset
- *
- * Description:
- *   Reset board.  Support for this function is required by board-level
- *   logic if CONFIG_BOARDCTL_RESET is selected.
- *
- * Input Parameters:
- *   status - Status information provided with the reset event.  This
- *            meaning of this status information is board-specific.  If not
- *            used by a board, the value zero may be provided in calls to
- *            board_reset().
- *
- * Returned Value:
- *   If this function returns, then it was not possible to power-off the
- *   board due to some constraints.  The return value int this case is a
- *   board-specific reason for the failure to shutdown.
- *
- ****************************************************************************/
-
 int board_reset(int status)
 {
-	if (status == REBOOT_TO_BOOTLOADER) {
-		board_reset_enter_bootloader();
-	}
+    /*
+     * No bootloader entry mechanism needed here.
+     * U-Boot handles boot mode selection on mx8mn.
+     *
+     * REBOOT_TO_BOOTLOADER is acknowledged but ignored —
+     * if this is needed later, implement via U-Boot env or
+     * a dedicated GPIO/register mechanism.
+     */
 
 #if defined(BOARD_HAS_ON_RESET)
-	board_on_reset(status);
+    board_on_reset(status);  // safe ESC shutdown before reset
 #endif
 
-	up_systemreset();
-	return 0;
+    up_systemreset();
+    return 0;
 }
 
 #endif /* CONFIG_BOARDCTL_RESET */

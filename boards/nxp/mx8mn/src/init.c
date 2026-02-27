@@ -64,6 +64,7 @@
 
 #include <mx8mn_iomuxc.h>
 
+#include <px4_arch/io_timer.h> // io_timer_channel_get_as_pwm_input
 #include <systemlib/px4_macros.h> // arraySize
 /****************************************************************************
  * Optional LED functions (only if you later enable LED driver)
@@ -80,10 +81,23 @@ __END_DECLS
 
 void board_on_reset(int status)
 {
-    /* For now: nothing special.
-     * Later you can ensure ESC outputs are safe here.
-     */
-    (void)status;
+  /*
+   * Reconfigure PWM output pins as inputs (Hi-Z) to ensure ESCs
+   * see no signal and disarm before the reset completes.
+   */
+  for (int i = 0; i < DIRECT_PWM_OUTPUT_CHANNELS; ++i) {
+    px4_arch_configgpio(
+        PX4_MAKE_GPIO_INPUT(io_timer_channel_get_as_pwm_input(i))
+        );
+  }
+
+  /*
+   * Give ESCs time to recognize the missing signal and disarm.
+   * Only needed on firmware-initiated resets, not bootloader resets.
+   */
+  if (status >= 0) {
+    up_mdelay(100);
+  }
 }
 
 /****************************************************************************

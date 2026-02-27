@@ -31,11 +31,8 @@
 #
 ############################################################################
 
-
 # platforms/nuttx/src/px4/nxp/mx8mn/CMakeLists.txt
-
 # Minimal arch layer for NXP MX8MN (M7).
-# Do NOT pull in ../kinetis/* here.
 
 # Provide the arch_* static libs that the NuttX PX4 layer links to by name.
 add_subdirectory(hrt)
@@ -43,19 +40,3 @@ add_subdirectory(board_reset)
 add_subdirectory(board_critmon)
 add_subdirectory(version)
 add_subdirectory(io_pins)
-# add_subdirectory(romfs)
-
-# Optional: chip-local include path (if you add px4_arch headers later)
-# add_library(arch_mx8mn INTERFACE)
-# target_include_directories(arch_mx8mn INTERFACE
-#     ${CMAKE_CURRENT_SOURCE_DIR}/include
-# )
-
-# add_subdirectory(../kinetis/adc adc)
-# add_subdirectory(../kinetis/board_reset board_reset)
-# add_subdirectory(../kinetis/board_critmon board_critmon)
-# add_subdirectory(../kinetis/led_pwm led_pwm)
-# add_subdirectory(../kinetis/hrt hrt)
-# add_subdirectory(../kinetis/io_pins io_pins)
-# add_subdirectory(../kinetis/tone_alarm tone_alarm)
-# add_subdirectory(../kinetis/version version)
