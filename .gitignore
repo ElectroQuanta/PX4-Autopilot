@@ -121,3 +121,4 @@ debug/
 deploy/
 docs-private/
 *.md
+rpmsg/
