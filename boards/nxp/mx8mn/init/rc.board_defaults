@@ -5,59 +5,32 @@
 
 echo ">> PX4 ROMFS rc.board_defaults running"
 
-###### Set some basic params in RAM (won't persist) ######
 # AIRFRAME = NXP HoverGames
-param set SYS_AUTOSTART 4017
-param set MAV_SYS_ID 1
+param set-default SYS_AUTOSTART 4017
+param set-default MAV_SYS_ID 1
 # Use dataman from RAM
-param set SYS_DM_BACKEND 1
-# stop I2C external bus probing
-# param set SENS_EXT_I2C_PRB 0
-##########################################################
+param set-default SYS_DM_BACKEND 1
 
-# # Select parameter file location
-# param select /fs/mtd_params
+if [ -f "/fs/mtd_params" ]
+then
+    echo ">> [FS] Persistent parameters ready in RAM. Loading..."
+    param select /fs/mtd_params
+    param load
+else
+    echo ">> [FS] No persistent parameters found. Using RAM defaults."
+    param select /fs/mtd_params
+fi
 
-# # Check if parameters exist
-# if [ -f /fs/mtd_params ]
-# then
-#     echo "Loading existing parameters..."
-#     param load /fs/mtd_params
-# else
-#     echo "No parameters found - loading defaults from ROMFS"
-    
-#     # Import default parameters from ROMFS
-#     if [ -f /etc/extras/parameters ]
-#     then
-#         param load /etc/extras/parameters
-#         echo "Loaded ROMFS defaults"
-#     else
-#         echo "WARNING: No default parameters found"
-#     fi
-# fi
+if [ -f "/fs/mtd_caldata" ]
+then
+    echo ">> [FS] Loading calibration from RAM shadow..."
+    param load /fs/mtd_caldata
+fi
 
-# # Try to set board defaults (these will fail if parameters don't exist in build)
-# # Use 'param set' instead of 'param set-default' to create them if missing
-# if param set SYS_AUTOSTART 0 2>/dev/null
-# then
-#     echo "Set SYS_AUTOSTART"
-# fi
+if [ -d "/mnt/linux" ]
+then
+    set LOGGER_ARGS "-rootfs /mnt/linux"
+    echo ">> [FS] Logger redirected to Linux persistent storage"
+fi
 
-# if param set SYS_DM_BACKEND 0 2>/dev/null
-# then
-#     echo "Set SYS_DM_BACKEND"
-# fi
-
-# # Save parameters
-# echo "Saving parameters..."
-# param save
-
-# echo "Parameters ready"
-
-# param set-default BAT1_V_DIV 10.177939394
-# param set-default BAT1_A_PER_V 15.391030303
-
-# rgbled_pwm start
-# safety_button start
-
-
+echo "Board defaults processed"

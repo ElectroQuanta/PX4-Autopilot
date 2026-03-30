@@ -130,6 +130,11 @@ if(CONFIG_NET)
 	target_link_libraries(nuttx_fs INTERFACE nuttx_net)
 endif()
 
+if(CONFIG_OPENAMP)
+	list(APPEND nuttx_libs nuttx_openamp)
+	target_link_libraries(nuttx_fs INTERFACE nuttx_openamp)
+endif()
+
 file(RELATIVE_PATH PX4_BINARY_DIR_REL ${CMAKE_CURRENT_BINARY_DIR} ${PX4_BINARY_DIR})
 
 # only in the cygwin environment: convert absolute linker script path to mixed windows (C:/...)

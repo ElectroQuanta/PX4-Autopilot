@@ -1,4 +1,5 @@
 /****************************************************************************
+ * boards/nxp/mx8mn/src/init.c
  *
  *   Copyright (c) 2016, 2018 PX4 Development Team. All rights reserved.
  *
@@ -63,11 +64,138 @@
 #include <nuttx/i2c/i2c_master.h>
 
 #include <mx8mn_iomuxc.h>
+#include <mx8mn_rptun.h>
 
 #include <px4_arch/io_timer.h> // io_timer_channel_get_as_pwm_input
 #include <systemlib/px4_macros.h> // arraySize
+
+#include <nuttx/config.h>
+#include <sys/mount.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <syslog.h>
+
+#include <nuttx/semaphore.h>
+#include <nuttx/clock.h>
+#include <nuttx/kthread.h>
+#include <time.h>
+
+#ifdef CONFIG_RPTUN
+#include <nuttx/rptun/rptun.h>
+#include <nuttx/rptun/openamp.h>
+#endif
+
+#ifdef CONFIG_MX8MN_RPMSG
+#include "mx8mn_rptun.h"
+#endif
+
+#include <px4_platform_common/module.h>
+
 /****************************************************************************
- * Optional LED functions (only if you later enable LED driver)
+ * Pre-processor Definitions
+ ****************************************************************************/
+
+#define RPMSGFS_WAIT_SECONDS 10
+
+/****************************************************************************
+ * Private Data
+ ****************************************************************************/
+
+#ifdef CONFIG_MX8MN_RPMSG
+static sem_t g_fs_ready_sem;
+static bool  g_rpmsg_link_ok = false;
+#endif
+
+/****************************************************************************
+ * Private Functions
+ ****************************************************************************/
+
+#ifdef CONFIG_MX8MN_RPMSG
+static int copy_file(const char *src, const char *dst)
+{
+  int sfd = open(src, O_RDONLY);
+  if (sfd < 0) return -errno;
+
+  int dfd = open(dst, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+  if (dfd < 0)
+    {
+      close(sfd);
+      return -errno;
+    }
+
+  char *buf = (char *)malloc(512);
+  if (buf == NULL)
+    {
+      close(sfd);
+      close(dfd);
+      return -ENOMEM;
+    }
+
+  ssize_t n;
+  int ret = OK;
+  while ((n = read(sfd, buf, 512)) > 0)
+    {
+      if (write(dfd, buf, n) != n)
+        {
+          ret = -EIO;
+          break;
+        }
+    }
+
+  free(buf);
+  close(sfd);
+  close(dfd);
+  return ret;
+}
+
+static int mount_linux_task(int argc, char *argv[])
+{
+  int ret;
+  int retry = 10;
+
+  mkdir("/mnt", 0777);
+  mkdir("/mnt/linux", 0777);
+  sleep(5);
+
+  while (retry > 0)
+    {
+      ret = nx_mount(NULL, "/mnt/linux", "rpmsgfs", 0, "cpu=linux");
+      if (ret == OK)
+        {
+          struct stat st;
+          if (stat("/mnt/linux/mtd_params", &st) == OK)
+            {
+              syslog(LOG_INFO, "[FS]: Linux storage linked and verified at /mnt/linux\n");
+
+              const char *files[] = {"mtd_params", "mtd_caldata", NULL};
+              for (int i = 0; files[i] != NULL; i++)
+                {
+                  char src[64], dst[64];
+                  snprintf(src, sizeof(src), "/mnt/linux/%s", files[i]);
+                  snprintf(dst, sizeof(dst), "/fs/%s", files[i]);
+
+                  copy_file(src, dst);
+                }
+
+              g_rpmsg_link_ok = true;
+              break;
+            }
+          else
+            {
+              umount("/mnt/linux");
+            }
+        }
+      usleep(500000);
+      retry--;
+    }
+
+  nxsem_post(&g_fs_ready_sem);
+  return 0;
+}
+#endif
+
+/****************************************************************************
+ * Optional LED functions
  ****************************************************************************/
 __BEGIN_DECLS
 void led_init(void);
@@ -81,32 +209,13 @@ __END_DECLS
 
 void board_on_reset(int status)
 {
-  /*
-   * Reconfigure PWM output pins as inputs (Hi-Z) to ensure ESCs
-   * see no signal and disarm before the reset completes.
-   */
   for (int i = 0; i < DIRECT_PWM_OUTPUT_CHANNELS; ++i) {
-    px4_arch_configgpio(
-        PX4_MAKE_GPIO_INPUT(io_timer_channel_get_as_pwm_input(i))
-        );
+    px4_arch_configgpio(PX4_MAKE_GPIO_INPUT(io_timer_channel_get_as_pwm_input(i)));
   }
-
-  /*
-   * Give ESCs time to recognize the missing signal and disarm.
-   * Only needed on firmware-initiated resets, not bootloader resets.
-   */
   if (status >= 0) {
     up_mdelay(100);
   }
 }
-
-/****************************************************************************
- * board_read_VBUS_state
- *
- * Returns 0 if USB VBUS is present, 1 otherwise.
- * For now, just report "not connected".
- * - NO VBUS is available for now
- ****************************************************************************/
 
 int board_read_VBUS_state(void)
 {
@@ -115,84 +224,21 @@ int board_read_VBUS_state(void)
 
 /****************************************************************************
  * Name: mx8mn_board_initialize
- *
- * Description:
- *   All mx8mn architectures must provide the following entry point.
- *   This entry point is called early in the initialization -- after all
- *   memory has been configured and mapped but before any devices have
- *   been initialized.
- *
- * Sequence:
- *   1. reset the board to disarm ESC motors
- *   2. Initialize the HRT (GPT1 @ 1MHz) - done by px4_platform_init
- *   3. Configure LEDs (not available for now)
- *   4. Initialize GPIOs pins, mainly for device enabling
- *   5. Enable RC Spektrum (not supported)
  ****************************************************************************/
 
 __EXPORT void mx8mn_board_initialize(void)
 {
     board_on_reset(-1);
-
-    /* const uint32_t gpio[] = PX4_GPIO_INIT_LIST; */
-    /* px4_gpio_init(gpio, arraySize(gpio)); */
 }
 
-#include <nuttx/config.h>
-#include <nuttx/board.h>
-#include <sys/mount.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <syslog.h>
-#include <errno.h>
+#define PARAM_MTD_SIZE (64 * 1024)
 
-#define PARAM_MTD_SIZE (64 * 1024) // 64KB for parameters
-
-/****************************************************************************
- * Name: board_i2c_init
- *
- * Used to debug I2C initialization
- ****************************************************************************/
-
-/* static void board_i2c_init(void) { */
-
-/*   /\* 1. Hardware Pin Muxing *\/ */
-/*   mx8mn_iomuxc_config(IOMUX_I2C1_SCL); */
-/*   mx8mn_iomuxc_config(IOMUX_I2C1_SDA); */
-
-/*   mx8mn_iomuxc_config(IOMUX_I2C2_SCL); */
-/*   mx8mn_iomuxc_config(IOMUX_I2C2_SDA); */
-
-/*   mx8mn_iomuxc_config(IOMUX_I2C3_SCL); */
-/*   mx8mn_iomuxc_config(IOMUX_I2C3_SDA); */
-    
-/*   mx8mn_iomuxc_config(IOMUX_I2C4_SCL); */
-/*   mx8mn_iomuxc_config(IOMUX_I2C4_SDA); */
-
-/*   /\* Test all available buses *\/   */
-/* for (int i = 0; i < PX4_NUMBER_I2C_BUSES + 1; i++) { */
-/*     struct i2c_master_s *test_ptr = mx8mn_i2cbus_initialize(i); */
-/*     if (test_ptr != NULL) { */
-/*         syslog(LOG_INFO, "[I2C] Phys Idx %d VALID\r\n", i); */
-        
-/*         // Try to read the WHO_AM_I register (0x00) of the IST8310 (0x0E) */
-/*         uint8_t reg = 0x00; */
-/*         uint8_t val = 0; */
-/*         struct i2c_msg_s msg[2]; */
-/*         msg[0].addr = 0x0E; msg[0].flags = 0;          msg[0].buffer = &reg; msg[0].length = 1; */
-/*         msg[1].addr = 0x0E; msg[1].flags = I2C_M_READ; msg[1].buffer = &val; msg[1].length = 1; */
-
-/*         if (I2C_TRANSFER(test_ptr, msg, 2) == OK) { */
-/*              syslog(LOG_INFO, "[I2C] -> FOUND IST8310 on Phys Idx %d!\r\n", i); */
-/*         } */
-/*     } */
-/*  } */
-/* } */
+#ifdef CONFIG_MX8MN_RPMSG
+int param_sync_thread(int argc, char *argv[]);
+#endif
 
 /****************************************************************************
  * Name: board_app_initialize
- *
- * PX4 entry: do platform-level init here.
  ****************************************************************************/
 
 __EXPORT int board_app_initialize(uintptr_t arg)
@@ -200,38 +246,43 @@ __EXPORT int board_app_initialize(uintptr_t arg)
   (void)arg;
   int ret;
 
-  /* Create /fs directory */
-  mkdir("/fs", 0777);
-    
-  /* Mount TMPFS to /fs */
-  ret = mount(NULL, "/fs", "tmpfs", 0, "mode=0777");
-  if (ret < 0) {
-    syslog(LOG_ERR, "[TMPFS]: Failed to mount /fs: errno=%d\n", errno);
-  } else {
-    syslog(LOG_INFO, "[TMPFS]: /fs mounted OK - PX4 will create param files\n");
-  }
+#ifdef CONFIG_MX8MN_RPMSG
+  nxsem_init(&g_fs_ready_sem, 0, 0);
+  syslog(LOG_INFO, "[RPTUN]: Starting RPTUN...\n");
+  mx8mn_rptun_init("imx8mn-shmem", "linux");
+  kthread_create("linux_link", SCHED_PRIORITY_DEFAULT, 2048, mount_linux_task, NULL);
+#endif
 
+  mkdir("/fs", 0777);
+  ret = nx_mount(NULL, "/fs", "tmpfs", 0, "mode=0777");
+  
+  if (ret == OK)
+    {
+#ifdef CONFIG_MX8MN_RPMSG
+      struct timespec ts;
+      clock_gettime(CLOCK_REALTIME, &ts);
+      ts.tv_sec += RPMSGFS_WAIT_SECONDS;
+
+      ret = nxsem_timedwait_uninterruptible(&g_fs_ready_sem, &ts);
+#endif
+
+      mkdir("/fs/microsd", 0777);
+      mkdir("/fs/microsd/log", 0777);
+    }
 
   /* configure SPI interfaces */
-  
   mx8mn_spidev_initialize();
 
-  /* PX4 core init */
+#ifdef CONFIG_SPI
+  ret = mx8mn_spi_bus_initialize();
+#endif
 
+  /* PX4 core init */
   px4_platform_init();
 
-  /* I2C init (debug)*/
-
-  /* board_i2c_init(); */
-
-
-#ifdef CONFIG_SPI
-	ret = mx8mn_spi_bus_initialize();
-
-	syslog(LOG_INFO, "[SPI]: Bus init = %d\n", ret);
-
+#ifdef CONFIG_MX8MN_RPMSG
+  kthread_create("param_sync", 30, 2048, param_sync_thread, NULL);
 #endif
 
   return OK;
 }
-

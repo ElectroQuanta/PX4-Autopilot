@@ -37,6 +37,7 @@ add_library(drivers_board
 	# can.c
 	i2c.cpp
 	init.c
+	param_sync.c
 	# led.c
 	# # sdhc.c
 	spi.cpp
