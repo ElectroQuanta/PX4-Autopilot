@@ -17,7 +17,7 @@
 [submodule "platforms/nuttx/NuttX/nuttx"]
 	path = platforms/nuttx/NuttX/nuttx
 	url = git@github.com:ElectroQuanta/px4-nuttx.git
-	branch = imx8mn-px4-1_16
+	branch = custom-board
 [submodule "platforms/nuttx/NuttX/apps"]
 	path = platforms/nuttx/NuttX/apps
 	url = https://github.com/PX4/NuttX-apps.git
