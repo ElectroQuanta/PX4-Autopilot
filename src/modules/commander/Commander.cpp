@@ -1219,6 +1219,10 @@ Commander::handle_command(const vehicle_command_s &cmd)
 
 	case vehicle_command_s::VEHICLE_CMD_ACTUATOR_TEST:
 		cmd_result = handleCommandActuatorTest(cmd);
+                break;
+
+	case vehicle_command_s::VEHICLE_CMD_DO_MOTOR_TEST:
+		cmd_result = handleCommandActuatorTest(cmd);
 		break;
 
 	case vehicle_command_s::VEHICLE_CMD_PREFLIGHT_REBOOT_SHUTDOWN: {
