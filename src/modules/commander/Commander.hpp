@@ -156,6 +156,7 @@ private:
 	bool handle_command(const vehicle_command_s &cmd);
 
 	unsigned handleCommandActuatorTest(const vehicle_command_s &cmd);
+	unsigned handleCommandMotorTest(const vehicle_command_s &cmd);
 
 	void executeActionRequest(const action_request_s &action_request);
 

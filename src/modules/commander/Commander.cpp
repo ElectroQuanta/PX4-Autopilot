@@ -1221,10 +1221,6 @@ Commander::handle_command(const vehicle_command_s &cmd)
 		cmd_result = handleCommandActuatorTest(cmd);
                 break;
 
-	case vehicle_command_s::VEHICLE_CMD_DO_MOTOR_TEST:
-		cmd_result = handleCommandActuatorTest(cmd);
-		break;
-
 	case vehicle_command_s::VEHICLE_CMD_PREFLIGHT_REBOOT_SHUTDOWN: {
 
 			const int param1 = cmd.param1;
@@ -1478,6 +1474,10 @@ Commander::handle_command(const vehicle_command_s &cmd)
 
 	case vehicle_command_s::VEHICLE_CMD_DO_SET_ACTUATOR:
 		answer_command(cmd, vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED);
+                break;
+
+	case vehicle_command_s::VEHICLE_CMD_DO_MOTOR_TEST:
+		cmd_result = handleCommandMotorTest(cmd);
 		break;
 
 	case vehicle_command_s::VEHICLE_CMD_START_RX_PAIR:
@@ -1614,6 +1614,48 @@ unsigned Commander::handleCommandActuatorTest(const vehicle_command_s &cmd)
 
 	actuator_test.action = actuator_test_s::ACTION_DO_CONTROL;
 	int timeout_ms = (int)(cmd.param2 * 1000.f + 0.5f);
+
+	if (timeout_ms <= 0) {
+		actuator_test.action = actuator_test_s::ACTION_RELEASE_CONTROL;
+
+	} else {
+		actuator_test.timeout_ms = timeout_ms;
+	}
+
+	// enforce a timeout and a maximum limit
+	if (actuator_test.timeout_ms == 0 || actuator_test.timeout_ms > 3000) {
+		actuator_test.timeout_ms = 3000;
+	}
+
+	_actuator_test_pub.publish(actuator_test);
+	return vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED;
+}
+
+unsigned Commander::handleCommandMotorTest(const vehicle_command_s &cmd)
+{
+	if (isArmed() || (_safety.isButtonAvailable() && !_safety.isSafetyOff())) {
+		return vehicle_command_ack_s::VEHICLE_CMD_RESULT_DENIED;
+	}
+
+	if (_param_com_mot_test_en.get() != 1) {
+		return vehicle_command_ack_s::VEHICLE_CMD_RESULT_DENIED;
+	}
+
+	actuator_test_s actuator_test{};
+	actuator_test.timestamp = hrt_absolute_time();
+
+	actuator_test.function = actuator_test_s::FUNCTION_MOTOR1 + (int)(cmd.param1 + 0.5f) - 1;
+
+	float throttle = cmd.param3;
+
+	if (cmd.param2 < 0.01f) {
+		throttle /= 100.0f;
+	}
+
+	actuator_test.value = throttle;
+
+	actuator_test.action = actuator_test_s::ACTION_DO_CONTROL;
+	int timeout_ms = (int)(cmd.param4 * 1000.f + 0.5f);
 
 	if (timeout_ms <= 0) {
 		actuator_test.action = actuator_test_s::ACTION_RELEASE_CONTROL;
