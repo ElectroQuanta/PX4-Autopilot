@@ -5,49 +5,26 @@
 
 echo ">> PX4 ROMFS rc.board_sensors running"
 
-# PM02D support (https://docs.px4.io/main/en/power_module/holybro_pm02d)
-param set SENS_EN_INA228 1
-if param compare SENS_EN_INA226 1
-then
-    # Start Digital power monitors
-    ina226 -I -b 4 -t 1 -k start
+# Barometer (on I2C bus defined in i2c.cpp)
+if ! bmp280 start -I -a 0x76; then
+    echo "WARN [init] failed to initialize barometer bmp280"
 fi
 
-if param compare SENS_EN_INA228 1
-then
-    # Start Digital power monitors
-    # -I -b 1: external bus 1
-    # -t 1: battery idx for calib
-    # -k: if initial probing fails, keep trying periodically
-    # -a: address (default: 69)
-    ina228 -I -b 4 -t 1 -k start
+# External (if any) or internal
+if ! ist8310 start -I -a 0x0e -R 0; then
+    echo "WARN [init] failed to initialize magnetometer ist8310"
 fi
 
-# Test I2C magnetometers
-# -I -b 2: internal bus 2
-# -a: address (default: 14)
-# -R: rotation (default: 0)
-ist8310 -I -b 2 -R 10 start
+# IMUs (on SPI bus defined in spi.cpp)
+# ECSPI2 CS 2 -> ICM42688P: ROTATION_PITCH_180
+if ! icm42688p start -s -R 12; then
+    echo "WARN [init] failed to initialize IMU icm42688p"
+fi
 
-# Internal Mag I2C bus roll 180, yaw 90 (default address 16)
-# -I -b 2: internal bus 2
-# -a: address (default: 16)
-bmm150 -I -R 10 start
-
-# Onboard I2C baros
-# -I: internal I2C
-# -a: I2C address (default: 118)
-bmp280 -I start
-
-# Internal SPI (accel + mag)
-# -s: internal SPI
-# -R: rotation (default: 0)
-# -A: accel
-# -G: gyro
-bmi088 -A -R 8 -s start
-bmi088 -G -R 8 -s start
-
-# # Internal SPI bus ICM-42688
-# -s: internal SPI
-# -R: rotation (default: 0)
-icm42688p -R 12 -s start
+# ECSPI2 CS 1/0 -> BMI088 (Accel/Gyro) - ROTATION_PITCH_180
+if ! bmi088 start -A -s -R 12; then
+    echo "WARN [init] failed to initialize IMU bmi088 accel"
+fi
+if ! bmi088 start -G -s -R 12; then
+    echo "WARN [init] failed to initialize IMU bmi088 gyro"
+fi

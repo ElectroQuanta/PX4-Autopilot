@@ -65,13 +65,13 @@ constexpr io_timers_t io_timers[MAX_IO_TIMERS] = {
  */
 
 constexpr timer_io_channels_t timer_io_channels[MAX_TIMER_IO_CHANNELS] = {
-	// Motor 1: PWM1 on SPDIF_EXT_CLK
+	// Motor 1: PWM1 on GPIO1_IO01
 	initIOTimerChannel(io_timers, {Timer::PWM1, Timer::Channel1}, {GPIO::PortInvalid, GPIO::Pin0}),
 
-	// Motor 2: PWM2 on SPDIF_RX
+	// Motor 2: PWM2 on GPIO1_IO13
 	initIOTimerChannel(io_timers, {Timer::PWM2, Timer::Channel1}, {GPIO::PortInvalid, GPIO::Pin0}),
 
-	// Motor 3: PWM3 on SPDIF_TX
+	// Motor 3: PWM3 on GPIO1_IO10
 	initIOTimerChannel(io_timers, {Timer::PWM3, Timer::Channel1}, {GPIO::PortInvalid, GPIO::Pin0}),
 
 	// Motor 4: PWM4 on SAI3_MCLK

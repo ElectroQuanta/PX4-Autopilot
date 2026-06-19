@@ -65,23 +65,12 @@ constexpr px4_spi_bus_t px4_spi_buses[SPI_BUS_MAX_BUS_ITEMS] = {
     // }),
     initSPIBus(SPI::Bus::SPI2,
                {
-                   initSPIDevice(DRV_IMU_DEVTYPE_ICM42688P,
-                                 SPI::CS{GPIO::Port3, GPIO::Pin19},
-                                 SPI::DRDY{GPIO::Port3, GPIO::Pin20}),
-                   initSPIDevice(DRV_GYR_DEVTYPE_BMI088,
-                                 SPI::CS{GPIO::Port3, GPIO::Pin21},
-                                 SPI::DRDY{GPIO::Port3, GPIO::Pin22}),
-                   initSPIDevice(DRV_ACC_DEVTYPE_BMI088,
-                                 SPI::CS{GPIO::Port5, GPIO::Pin23}),
-                   // initSPIDevice(DRV_DEVTYPE_UNUSED, SPI::CS{GPIO::PortA,
-                   // GPIO::Pin19}), // CAL Memory
+                   initSPIDevice(DRV_IMU_DEVTYPE_ICM42688P, SPI::CS{GPIO::Port3, GPIO::Pin21}, SPI::DRDY{GPIO::Port3, GPIO::Pin20}),
+                   initSPIDevice(DRV_GYR_DEVTYPE_BMI088,   SPI::CS{GPIO::Port3, GPIO::Pin24}, SPI::DRDY{GPIO::Port3, GPIO::Pin23}),
+                   initSPIDevice(DRV_ACC_DEVTYPE_BMI088,   SPI::CS{GPIO::Port3, GPIO::Pin25}, SPI::DRDY{GPIO::Port3, GPIO::Pin22}),
+                   initSPIDevice(DRV_DEVTYPE_UNUSED,       SPI::CS{GPIO::Port3, GPIO::Pin19}), // Flash
                }
-               // {GPIO::PortB, GPIO::Pin8} // Power enable
                ),
-  initSPIBusExternal(SPI::Bus::SPI1, {
-      initSPIConfigExternal(SPI::CS{GPIO::Port3, GPIO::Pin25})
-      // initSPIConfigExternal(SPI::CS{GPIO::PortD, GPIO::Pin15}),
-    }),
 };
 
 static constexpr bool unused = validateSPIConfig(px4_spi_buses);

@@ -49,21 +49,12 @@ __BEGIN_DECLS
 #include <hardware/mx8mn_pinmux.h>
 #include <hardware/mx8mn_gpio.h>
 
-/* This header contains your specific board pin assignments (GPIO_ICM42688_DRDY, etc.) */
+/* This header contains your specific board pin assignments */
 #include <arch/board/board.h>
 
 /* ADC channels - Define dummy values for now */
 #define ADC_BATTERY_VOLTAGE_CHANNEL  ((uint8_t)0)  /* Dummy - no actual ADC */
 #define ADC_BATTERY_CURRENT_CHANNEL ((uint8_t)0)   /* Dummy - no actual ADC */
-
-/* SRF05 on iMX8MN - adjust pin numbers based on your schematic */
-// defined in ./platforms/nuttx/NuttX/nuttx/arch/arm/src/kinetis/kinetis.h
-/* #define GPIO_ULTRASOUND_TRIGGER  /\* PTD0 *\/  (GPIO_LOWDRIVE | GPIO_OUTPUT_ZERO | PIN_PORTD | PIN0) */
-/* #define GPIO_ULTRASOUND_ECHO     /\* PTA10 *\/ (GPIO_PULLUP | PIN_INT_BOTH | PIN_PORTA | PIN10) */
-
-/* /\* cache-aligned allocation used by uORB and others *\/ */
-/* __EXPORT void *px4_cache_aligned_alloc(size_t size); */
-/* __EXPORT void  px4_cache_aligned_free(void *ptr); */
 
 __END_DECLS
 
@@ -84,48 +75,42 @@ __END_DECLS
 /* Use the Mux Mode + SION Flag (bit 4) */
 #define I2C_MUX_SION 1
 
-/* I2C1 - PMIC (Linux) */
-#define IOMUX_I2C1_SCL IOMUXC_I2C1_SCL_I2C1_SCL, I2C_MUX_SION, I2C_PAD_CTRL
-#define IOMUX_I2C1_SDA IOMUXC_I2C1_SDA_I2C1_SDA, I2C_MUX_SION, I2C_PAD_CTRL
-
-/* I2C2 - Internal Sensors */
-#define IOMUX_I2C2_SCL IOMUXC_I2C2_SCL_I2C2_SCL, I2C_MUX_SION, I2C_PAD_CTRL
-#define IOMUX_I2C2_SDA IOMUXC_I2C2_SDA_I2C2_SDA, I2C_MUX_SION, I2C_PAD_CTRL
-
-/* I2C3 - Camera (Linux) */
-#define IOMUX_I2C3_SCL IOMUXC_I2C3_SCL_I2C3_SCL, I2C_MUX_SION, I2C_PAD_CTRL
-#define IOMUX_I2C3_SDA IOMUXC_I2C3_SDA_I2C3_SDA, I2C_MUX_SION, I2C_PAD_CTRL
-
-/* I2C4 - Power Monitors (INA228) */
+/* I2C4 - Sensors */
 #define IOMUX_I2C4_SCL IOMUXC_I2C4_SCL_I2C4_SCL, I2C_MUX_SION, I2C_PAD_CTRL
 #define IOMUX_I2C4_SDA IOMUXC_I2C4_SDA_I2C4_SDA, I2C_MUX_SION, I2C_PAD_CTRL
 
 
 /* UART3 + Flow Control (Sacrificing SPI1 Pins): Telem Radio */
 
-#define IOMUX_UART3_RX   IOMUXC_UART3_RXD_UART3_RX, 0, UART_PAD_CTRL
-#define IOMUX_UART3_TX   IOMUXC_UART3_TXD_UART3_TX, 0, UART_PAD_CTRL
-#define IOMUX_UART3_RTS  IOMUXC_ECSPI1_MISO_UART3_RTS_B, 1, UART_PAD_CTRL
-#define IOMUX_UART3_CTS IOMUXC_ECSPI1_MISO_UART3_CTS_B, 1, UART_PAD_CTRL
+#define IOMUX_UART3_RX   IOMUXC_ECSPI1_SCLK_UART3_RX, 1, UART_PAD_CTRL
+#define IOMUX_UART3_TX   IOMUXC_ECSPI1_MOSI_UART3_TX, 1, UART_PAD_CTRL
+#define IOMUX_UART3_RTS  IOMUXC_ECSPI1_SS0_UART3_RTS_B, 1, UART_PAD_CTRL
+#define IOMUX_UART3_CTS  IOMUXC_ECSPI1_MISO_UART3_CTS_B, 1, UART_PAD_CTRL
 
 /* Sensor Power Control */
-/** TODO: Verify macro */
-#define GPIO_VDD_3V3_SENSORS_EN (GPIO_PORT3 | GPIO_PIN19 | GPIO_OUTPUT | GPIO_OUTPUT_ZERO)
-#define VDD_3V3_SENSORS_EN(v) mx8mn_gpio_write(GPIO_VDD_3V3_SENSORS_EN, (v))
+#define GPIO_VDD_3V3_SENSORS_EN (GPIO_PORT1 | GPIO_PIN9 | GPIO_OUTPUT | GPIO_OUTPUT_ONE)
+#define VDD_3V3_SENSORS_EN(v) mx8mn_gpio_write(GPIO_VDD_3V3_SENSORS_EN, !(v))
 
 /* Timer I/O PWM Configuration
  *
  * 4 PWM outputs are configured using the i.MX8MN PWM modules:
- *   PWM1: SPDIF_EXT_CLK (Motor 1)
- *   PWM2: SPDIF_RX      (Motor 2)
- *   PWM3: SPDIF_TX      (Motor 3)
- *   PWM4: SAI3_MCLK     (Motor 4)
+ *   PWM1: GPIO1_IO01
+ *   PWM2: GPIO1_IO13
+ *   PWM3: GPIO1_IO10
+ *   PWM4: SAI3_MCLK
  */
 #define DIRECT_PWM_OUTPUT_CHANNELS  4
 
 /* Board-specific PWM frequency (Hz) */
 #define BOARD_PWM_FREQ              400     /* 400 Hz for standard ESC */
 #define BOARD_ONESHOT_FREQ          8000000 /* 8 MHz for OneShot125 */
+
+/* IOMUX for PWM pins */
+#define IOMUX_PWM1_OUT  IOMUXC_GPIO1_IO01_PWM1_OUT, 1, PWM_PAD_CTRL
+#define IOMUX_PWM2_OUT  IOMUXC_GPIO1_IO13_PWM2_OUT, 5, PWM_PAD_CTRL
+#define IOMUX_PWM3_OUT  IOMUXC_GPIO1_IO10_PWM3_OUT, 2, PWM_PAD_CTRL
+#define IOMUX_PWM4_OUT  IOMUXC_SAI3_MCLK_PWM4_OUT, 1, PWM_PAD_CTRL
+
 
 /* High-Resolution Timer (HRT) Configuration **********************************/
 
@@ -164,118 +149,18 @@ __END_DECLS
 #define IOMUXC_SPI2_MOSI IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI, 0, SPI_PAD_CTRL
 #define IOMUXC_SPI2_CLK IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK, 0, SPI_PAD_CTRL
 
-/* /\* * SPI Bus Pad Control (SCLK, MOSI): */
-/*  * - DSE6: Maximum drive strength to maintain square waves at 24MHz. */
-/*  * - FSEL: Fast slew rate to minimize transition time. */
-/*  * - HYS:  Enable Schmitt trigger for cleaner sampling. */
-/*  *\/ */
-/* #define SPI_BUS_OUT_PAD_CTRL  (PAD_CTL_DSE6 | PAD_CTL_FSEL | PAD_CTL_HYS) */
-
-/* /\* * SPI MISO Pad Control: */
-/*  * - HYS: Schmitt trigger is mandatory for noise immunity on the return data. */
-/*  * - PE/PUE: Weak pull-up to prevent the line from floating when no slave is selected. */
-/*  *\/ */
-/* #define SPI_BUS_IN_PAD_CTRL   (PAD_CTL_HYS | PAD_CTL_PE | PAD_CTL_PUE | PAD_CTL_DSE2) */
-
-/* #define IOMUXC_SPI2_MISO IOMUXC_ECSPI2_MISO_ECSPI2_MISO, 0, SPI_BUS_IN_PAD_CTRL */
-/* #define IOMUXC_SPI2_MOSI IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI, 0, SPI_BUS_OUT_PAD_CTRL */
-/* #define IOMUXC_SPI2_CLK IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK, 0, SPI_BUS_OUT_PAD_CTRL */
-
 /* SPI2 Chip Selects */
-// BMI_ACCEL_CS: IOMUXC_ECSPI2_SCLK_GPIO5_IO10
-// BMI_ACCEL_CS: IOMUXC_SAI5_RXD2_GPIO3_IO23
-// BMI_ACCEL_CS: IOMUXC_ECSPI2_SS0_GPIO5_IO13 
-// BMI_GYRO_CS: IOMUXC_SAI5_RXD1_GPIO3_IO22
-// ICM42688_CS: IOMUXC_SAI5_RXD3_GPIO3_IO24
-// #define IOMUXC_SPI2_CS IOMUXC_ECSPI2_SS0_GPIO5_IO13, 1, SPI_PAD_CTRL
-#define GPIO_SPI2_CS_BMI088_ACCEL (GPIO_PORT5 | GPIO_PIN13 | GPIO_OUTPUT | GPIO_OUTPUT_ONE)
-/* #define GPIO_SPI2_CS_BMI_ACCEL  (GPIO_PORT5 | GPIO_PIN10  | GPIO_OUTPUT | GPIO_OUTPUT_ONE) */
-#define GPIO_SPI2_CS_BMI088_GYRO   (GPIO_PORT3 | GPIO_PIN22 | GPIO_OUTPUT | GPIO_OUTPUT_ONE)
-#define GPIO_SPI2_CS_ICM42688   (GPIO_PORT3 | GPIO_PIN24 | GPIO_OUTPUT | GPIO_OUTPUT_ONE)
+#define GPIO_SPI2_CS_BMI088_GYRO  (GPIO_PORT3 | GPIO_PIN24 | GPIO_OUTPUT | GPIO_OUTPUT_ONE)
+#define GPIO_SPI2_CS_BMI088_ACCEL (GPIO_PORT3 | GPIO_PIN25 | GPIO_OUTPUT | GPIO_OUTPUT_ONE)
+#define GPIO_SPI2_CS_ICM42688     (GPIO_PORT3 | GPIO_PIN21 | GPIO_OUTPUT | GPIO_OUTPUT_ONE)
+#define GPIO_SPI2_CS_FLASH       (GPIO_PORT3 | GPIO_PIN19 | GPIO_OUTPUT | GPIO_OUTPUT_ONE)
 
 /* Data Ready (DRDY) Pins as Inputs with Pull-ups */
-// GPIO_ICM42688_DRDY: IOMUXC_SAI5_RXD2_GPIO3_IO23
-// GPIO_BMI088_DRDY: IOMUXC_SAI5_RXD0_GPIO3_IO21
-// GPIO_BMI088_DRDY: IOMUXC_SAI5_MCLK_GPIO3_IO25
-/* Standard DRDY config for mx8mn */
 #define MX8MN_GPIO_DRDY_CONFIG (GPIO_INTERRUPT | GPIO_INTBOTH_EDGES | PAD_CTL_HYS | PAD_CTL_PE | PAD_CTL_PUE)
 
-#define GPIO_ICM42688_DRDY     (GPIO_PORT3 | GPIO_PIN23 | MX8MN_GPIO_DRDY_CONFIG)
-#define GPIO_BMI088_ACCEL_DRDY     (GPIO_PORT3 | GPIO_PIN21 | MX8MN_GPIO_DRDY_CONFIG)
-#define GPIO_BMI088_GYRO_DRDY     (GPIO_PORT3 | GPIO_PIN25 | MX8MN_GPIO_DRDY_CONFIG)
-
-
-/* /\* I2C1 (PMIC) */
-/*  * */
-/*  * This device can be pinned out to be either or */
-
-/*  * Bit   Pin Device   Signal Usage                 Conn */
-/*  * ----- --- -------  --------------------------- ------ */
-/*  * PTB2   83 I2C0_SCL U_ECH Ultrasonic            P13-3 */
-/*  * PTB3   84 I2C0_SDA U_TRI Ultrasonic            P13-2 */
-/*  * ----- --- -------  --------------------------- ------ */
-/*  * */
-/*  * Bit   Pin Device   Signal Usage                 Conn */
-/*  * ----- --- -------  --------------------------- ------ */
-/*  * PTE24  45 I2C0_SCL IIC_SCL NFC Connector, IIC  P2-2 */
-/*  * PTE25  46 I2C0_SDA IIC_SDA NFC Connector, IIC  P2-3 */
-/*  * ----- --- -------  --------------------------- ------ */
-/*  *\/ */
-
-/* #define PIN_I2C1_SCL     PIN_I2C1_SCL_4   /\* PTE24  IIC_SCL *\/ */
-/* #define PIN_I2C1_SDA     PIN_I2C1_SDA_4   /\* PTE25  IIC_SDA *\/ */
-
-/* /\* I2C2 (Sensors) */
-/*  * */
-/*  * Bit   Pin Device   Signal         Usage         Conn */
-/*  * ----- --- -------  -------------- ------------- ------ */
-/*  * PTC10 115 I2C1_SCL P_SCL, GPS_SCL Pressure, GPS P3-4 */
-/*  * PTC11 116 I2C1_SDA P_SDA, GPS_SDA Pressure, GPS P3-5 */
-/*  * ----- --- -------  -------------- ------------- ------ */
-/*  *\/ */
-
-/* #define PIN_I2C1_SCL     PIN_I2C1_SCL_1   /\* PTC10 GPS / Pressure Sensor*\/ */
-/* #define PIN_I2C1_SDA     PIN_I2C1_SDA_1   /\* PTC11 GPS / Pressure Sensor *\/ */
-/** ============================================================ */
-
-
-/** =========================== SPI ============================ */
-
-/* /\* SPI0 FRAM *\/ */
-
-/* #define PIN_SPI0_PCS0    PIN_SPI0_PCS2_1  /\* PTC2 SPI_CS  FRAM_CS   *\/ */
-/* #define PIN_SPI0_SCK     PIN_SPI0_SCK_2   /\* PTC5 SPI_CLK FRAM_SCK  *\/ */
-/* #define PIN_SPI0_OUT     PIN_SPI0_SOUT_2  /\* PTC6 SPI_OUT FRAM_MOSI *\/ */
-/* #define PIN_SPI0_SIN     PIN_SPI0_SIN_2   /\* PTC7 SPI_IN  FRAM_MISO *\/ */
-
-/* /\* SPI1 */
-/*  * FXOS8700CQ Accelerometer */
-/*  * FXAS21002CQ Gyroscope */
-/*  *\/ */
-
-/* #define PIN_SPI1_PCS0    PIN_SPI1_PCS0_1  /\* PTB10 A_CS   *\/ */
-/* #define PIN_SPI1_PCS1    PIN_SPI1_PCS1_1  /\* PTB9  GM_CS  *\/ */
-/* #define PIN_SPI1_SCK     PIN_SPI1_SCK_1   /\* PTB11 A_SCLK *\/ */
-/* #define PIN_SPI1_OUT     PIN_SPI1_SOUT_1  /\* PTB16 A_MOSI *\/ */
-/* #define PIN_SPI1_SIN     PIN_SPI1_SIN_1   /\* PTB17 A_MISO *\/ */
-
-/* /\* SPI2 */
-/*  * Bit   Pin Device   Signal     Conn */
-/*  * ----- --- -------  --------- ------ */
-/*  * PTB20 99  SPI2_PCS0 SPI2_CS  P18-5 */
-/*  * PTB21 100 SPI2_SCK  SPI2_CLK P18-2 */
-/*  * PTB22 101 SPI2_SOUT SPI2_OUT P18-3 */
-/*  * PTB23 102 SPI2_SIN SPI2_IN   P18-4 */
-/*  * */
-/*  *\/ */
-
-/* #define PIN_SPI2_PCS0    PIN_SPI2_PCS0_1  /\* PTB20 SPI2_CS  *\/ */
-/* #define PIN_SPI2_SCK     PIN_SPI2_SCK_1   /\* PTB21 SPI2_CLK *\/ */
-/* #define PIN_SPI2_OUT     PIN_SPI2_SOUT_1  /\* PTB22 SPI2_OUT *\/ */
-/* #define PIN_SPI2_SIN     PIN_SPI2_SIN_1   /\* PTB23 SPI2_IN  *\/ */
-/** ============================================================ */
-
-
+#define GPIO_ICM42688_DRDY     (GPIO_PORT3 | GPIO_PIN20 | MX8MN_GPIO_DRDY_CONFIG)
+#define GPIO_BMI088_ACCEL_DRDY (GPIO_PORT3 | GPIO_PIN22 | MX8MN_GPIO_DRDY_CONFIG)
+#define GPIO_BMI088_GYRO_DRDY  (GPIO_PORT3 | GPIO_PIN23 | MX8MN_GPIO_DRDY_CONFIG)
 /* This board provides the board_on_reset interface */
 
 #define BOARD_HAS_ON_RESET 1
@@ -285,7 +170,9 @@ __END_DECLS
  */
 
 #define PX4_GPIO_INIT_LIST                                                     \
-  {}
+  {                                                                            \
+    GPIO_VDD_3V3_SENSORS_EN,                                                   \
+  }
 
 /* PX4 uses 2x 32-bit words from the CPU UUID as a 64-bit unique ID (MAVLink UID).
  * For bring-up we just point it at words 0 and 1.
