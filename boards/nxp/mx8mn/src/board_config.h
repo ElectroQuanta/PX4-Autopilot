@@ -89,7 +89,7 @@ __END_DECLS
 
 /* Sensor Power Control */
 #define GPIO_VDD_3V3_SENSORS_EN (GPIO_PORT1 | GPIO_PIN9 | GPIO_OUTPUT | GPIO_OUTPUT_ONE)
-#define VDD_3V3_SENSORS_EN(v) mx8mn_gpio_write(GPIO_VDD_3V3_SENSORS_EN, !(v))
+#define VDD_3V3_SENSORS_EN(v) mx8mn_gpio_write(GPIO_VDD_3V3_SENSORS_EN,(v))
 
 /* Timer I/O PWM Configuration
  *

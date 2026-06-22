@@ -267,7 +267,7 @@ __EXPORT int board_app_initialize(uintptr_t arg)
     ;
 
   /* syslog(LOG_INFO, "[VDD_3V3] Before disable (GPIO1_9): %d\n", mx8mn_gpio_read(GPIO_VDD_3V3_SENSORS_EN)); */
-  VDD_3V3_SENSORS_EN(false);
+  VDD_3V3_SENSORS_EN(true);
   /* syslog(LOG_INFO, "[VDD_3V3] After disable (GPIO1_9): %d\n", mx8mn_gpio_read(GPIO_VDD_3V3_SENSORS_EN)); */
   
   /* syslog(LOG_INFO, "[VDD_3V3] Before enable (GPIO1_9): %d\n", mx8mn_gpio_read(GPIO_VDD_3V3_SENSORS_EN)); */
