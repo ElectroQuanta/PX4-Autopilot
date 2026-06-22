@@ -230,8 +230,13 @@ __EXPORT void mx8mn_board_initialize(void)
 {
   board_on_reset(-1);
 
-  /* Configure IOMUX for VDD_3V3_SENSORS_EN (GPIO1_IO09) with SION loopback enabled */
-  mx8mn_iomuxc_config(IOMUXC_GPIO1_IO09_GPIO1_IO09, 1, 0);
+  /* Configure IOMUX for VDD_3V3_SENSORS_EN (GPIO1_IO09)*/
+
+#define GPIO_PAD_CTRL_MINE                                                     \
+  (PAD_CTL_HYS | PAD_CTL_PUE | PAD_CTL_PE | PAD_CTL_DSE6)
+
+#define IOMUX_GPIO109 IOMUXC_GPIO1_IO09_GPIO1_IO09, 0, GPIO_PAD_CTRL_MINE
+  mx8mn_iomuxc_config( IOMUX_GPIO109 );
 
 
   /* Configure I2C4 Pins (SCL, SDA) with SION enabled */
@@ -262,7 +267,7 @@ __EXPORT int board_app_initialize(uintptr_t arg)
     ;
 
   /* syslog(LOG_INFO, "[VDD_3V3] Before disable (GPIO1_9): %d\n", mx8mn_gpio_read(GPIO_VDD_3V3_SENSORS_EN)); */
-  /* VDD_3V3_SENSORS_EN(false); */
+  VDD_3V3_SENSORS_EN(false);
   /* syslog(LOG_INFO, "[VDD_3V3] After disable (GPIO1_9): %d\n", mx8mn_gpio_read(GPIO_VDD_3V3_SENSORS_EN)); */
   
   /* syslog(LOG_INFO, "[VDD_3V3] Before enable (GPIO1_9): %d\n", mx8mn_gpio_read(GPIO_VDD_3V3_SENSORS_EN)); */
