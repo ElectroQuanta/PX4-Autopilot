@@ -78,7 +78,13 @@ __END_DECLS
 /* I2C4 - Sensors */
 #define IOMUX_I2C4_SCL IOMUXC_I2C4_SCL_I2C4_SCL, I2C_MUX_SION, I2C_PAD_CTRL
 #define IOMUX_I2C4_SDA IOMUXC_I2C4_SDA_I2C4_SDA, I2C_MUX_SION, I2C_PAD_CTRL
+#define GPIO_I2C4_SCL (GPIO_PORT5 | GPIO_PIN20 | GPIO_INPUT)
+#define GPIO_I2C4_SDA (GPIO_PORT5 | GPIO_PIN21 | GPIO_INPUT)
 
+#define GPIO_PAD_CTRL_MINE                                                     \
+  (PAD_CTL_HYS | PAD_CTL_PUE | PAD_CTL_PE | PAD_CTL_DSE6)
+
+#define IOMUX_GPIO109 IOMUXC_GPIO1_IO09_GPIO1_IO09, 0, GPIO_PAD_CTRL_MINE
 
 /* UART3 + Flow Control (Sacrificing SPI1 Pins): Telem Radio */
 
@@ -89,7 +95,7 @@ __END_DECLS
 
 /* Sensor Power Control */
 #define GPIO_VDD_3V3_SENSORS_EN (GPIO_PORT1 | GPIO_PIN9 | GPIO_OUTPUT | GPIO_OUTPUT_ONE)
-#define VDD_3V3_SENSORS_EN(v) mx8mn_gpio_write(GPIO_VDD_3V3_SENSORS_EN,(v))
+#define VDD_3V3_SENSORS_EN(v) mx8mn_gpio_write(GPIO_VDD_3V3_SENSORS_EN, (v))
 
 /* Timer I/O PWM Configuration
  *
@@ -165,14 +171,11 @@ __END_DECLS
 
 #define BOARD_HAS_ON_RESET 1
 
-/* For minimal bring-up we do not configure any GPIOs yet.
- * px4_gpio_init() will simply not be called.
- */
-
-#define PX4_GPIO_INIT_LIST                                                     \
-  {                                                                            \
-    GPIO_VDD_3V3_SENSORS_EN,                                                   \
-  }
+#define PX4_GPIO_INIT_LIST {  \
+		GPIO_VDD_3V3_SENSORS_EN,           \
+		GPIO_I2C4_SCL,           \
+		GPIO_I2C4_SDA,           \
+}
 
 /* PX4 uses 2x 32-bit words from the CPU UUID as a 64-bit unique ID (MAVLink UID).
  * For bring-up we just point it at words 0 and 1.

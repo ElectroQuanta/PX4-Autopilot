@@ -232,10 +232,6 @@ __EXPORT void mx8mn_board_initialize(void)
 
   /* Configure IOMUX for VDD_3V3_SENSORS_EN (GPIO1_IO09)*/
 
-#define GPIO_PAD_CTRL_MINE                                                     \
-  (PAD_CTL_HYS | PAD_CTL_PUE | PAD_CTL_PE | PAD_CTL_DSE6)
-
-#define IOMUX_GPIO109 IOMUXC_GPIO1_IO09_GPIO1_IO09, 0, GPIO_PAD_CTRL_MINE
   mx8mn_iomuxc_config( IOMUX_GPIO109 );
 
 
