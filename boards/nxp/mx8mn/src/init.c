@@ -258,17 +258,7 @@ __EXPORT int board_app_initialize(uintptr_t arg)
   (void)arg;
   int ret;
 
-  volatile int dbg = 1;
-  while (dbg)
-    ;
-
-  /* syslog(LOG_INFO, "[VDD_3V3] Before disable (GPIO1_9): %d\n", mx8mn_gpio_read(GPIO_VDD_3V3_SENSORS_EN)); */
   VDD_3V3_SENSORS_EN(true);
-  /* syslog(LOG_INFO, "[VDD_3V3] After disable (GPIO1_9): %d\n", mx8mn_gpio_read(GPIO_VDD_3V3_SENSORS_EN)); */
-  
-  /* syslog(LOG_INFO, "[VDD_3V3] Before enable (GPIO1_9): %d\n", mx8mn_gpio_read(GPIO_VDD_3V3_SENSORS_EN)); */
-  /* VDD_3V3_SENSORS_EN(true); */
-  /* syslog(LOG_INFO, "[VDD_3V3] After enable (GPIO1_9): %d\n", mx8mn_gpio_read(GPIO_VDD_3V3_SENSORS_EN)); */
 
 #ifdef CONFIG_MX8MN_RPMSG
   nxsem_init(&g_fs_ready_sem, 0, 0);

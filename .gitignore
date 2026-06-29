@@ -117,8 +117,4 @@ keys/
 *_bkp/
 
 # Extra
-debug/
-deploy/
-docs-private/
-*.md
-rpmsg/
+.cache/
